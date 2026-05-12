@@ -1,0 +1,127 @@
+.membership-page {
+  .membership-summary-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    position: relative;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+
+    &.bg-green-gradient { background: linear-gradient(135deg, #0abf9c 0%, #089d81 100%); }
+    &.bg-blue-gradient { background: linear-gradient(135deg, #727cf5 0%, #5a65db 100%); }
+    &.bg-pink-gradient { background: linear-gradient(135deg, #ff6b6b 0%, #e64980 100%); }
+    &.bg-orange-gradient { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
+
+    .icon-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(255, 255, 255, 0.2) !important;
+      backdrop-filter: blur(4px);
+      transition: transform 0.3s ease;
+      border-radius: 50%;
+
+      i {
+        font-size: 24px;
+        line-height: 1;
+        color: #fff !important;
+        display: block;
+      }
+    }
+
+    &:hover .icon-wrapper {
+      transform: scale(1.1) rotate(5deg);
+    }
+  }
+
+  .tab-switcher {
+    .btn {
+      transition: all 0.2s ease;
+      font-size: 13px;
+      
+      &:hover:not(.bg-white) {
+        background-color: rgba(255, 255, 255, 0.5) !important;
+      }
+    }
+  }
+
+  .main-list-card {
+    min-height: 400px;
+    border: 1px solid #eee !important;
+  }
+
+  .shadow-primary {
+    background-color: #727cf5 !important;
+    border-color: #727cf5 !important;
+    box-shadow: 0 4px 15px rgba(114, 124, 245, 0.4) !important;
+    
+    &:hover {
+      background-color: darken(#727cf5, 5%) !important;
+      transform: translateY(-1px);
+    }
+  }
+
+  .upload-area {
+    border: 2px dashed #eee;
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      border-color: #727cf5;
+      background-color: rgba(114, 124, 245, 0.02) !important;
+    }
+  }
+
+  .custom-outline-btn {
+    border: 2px solid #727cf5 !important;
+    color: #727cf5 !important;
+    background: transparent !important;
+    
+    &:hover {
+      background: #727cf5 !important;
+      color: #fff !important;
+    }
+  }
+}
+
+.membership-modal {
+  .modal-content {
+    border-radius: 20px !important;
+    border: none;
+  }
+
+  .shadow-purple-focus:focus {
+    border: 2px solid #727cf5 !important;
+    background-color: #fff !important;
+    box-shadow: none;
+  }
+
+  .custom-switch-purple {
+    width: 45px !important;
+    height: 24px !important;
+    cursor: pointer;
+    
+    &:checked {
+      background-color: #727cf5 !important;
+      border-color: #727cf5 !important;
+    }
+  }
+
+  .btn-close {
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    padding: 10px;
+    font-size: 10px;
+    opacity: 0.8;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

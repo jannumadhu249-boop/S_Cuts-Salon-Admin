@@ -1,0 +1,110 @@
+.services-page {
+  .search-box {
+    .form-control:focus {
+      box-shadow: none;
+    }
+  }
+
+  .table-card {
+    min-height: 400px;
+    
+    .table-header-custom {
+      letter-spacing: 0.05em;
+    }
+
+    .ls-1 {
+      letter-spacing: 1px;
+    }
+
+    .custom-checkbox {
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 2px solid #dee2e6;
+        cursor: pointer;
+        
+        &:checked {
+          background-color: #727cf5;
+          border-color: #727cf5;
+        }
+      }
+    }
+
+    .empty-state-wrapper {
+      .icon-circle {
+        width: 80px;
+        height: 80px;
+        background: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #adb5bd;
+      }
+    }
+  }
+
+  .table-footer-custom {
+    .form-select {
+      font-size: 12px;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      cursor: pointer;
+      
+      &:focus {
+        box-shadow: 0 0 0 2px rgba(114, 124, 245, 0.1);
+      }
+    }
+
+    .pagination-controls {
+      .btn {
+        font-weight: 500;
+        transition: all 0.2s ease;
+        
+        &:not(:disabled):hover {
+          background-color: #f1f1f1 !important;
+          border-color: #e9ecef !important;
+        }
+      }
+    }
+  }
+}
+
+.packages-page, .create-package-page {
+  .custom-check-purple {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 2px solid #e9ecef;
+    cursor: pointer;
+    margin-right: 5px;
+    
+    &:checked {
+      background-color: #727cf5;
+      border-color: #727cf5;
+    }
+  }
+
+  .custom-switch-purple {
+    width: 45px !important;
+    height: 24px !important;
+    cursor: pointer;
+    
+    &:checked {
+      background-color: #727cf5 !important;
+      border-color: #727cf5 !important;
+    }
+  }
+
+  .shadow-primary {
+    background-color: #727cf5 !important;
+    border-color: #727cf5 !important;
+    box-shadow: 0 4px 15px rgba(114, 124, 245, 0.4) !important;
+    
+    &:hover {
+      background-color: darken(#727cf5, 10%) !important;
+      transform: translateY(-1px);
+    }
+  }
+}

@@ -1,0 +1,103 @@
+.invoices-page {
+  .col-xl-2-4 {
+    flex: 0 0 auto;
+    width: 20%;
+  }
+
+  .invoice-summary-card {
+    .icon-wrapper {
+      width: 45px;
+      height: 45px;
+      border-radius: 12px;
+      font-size: 20px;
+    }
+
+    &.invoices .icon-wrapper { background: rgba(114, 124, 245, 0.1); color: #727cf5; }
+    &.revenue .icon-wrapper { background: rgba(10, 191, 156, 0.1); color: #0abf9c; }
+    &.discounts .icon-wrapper { background: rgba(243, 156, 18, 0.1); color: #f39c12; }
+    &.tips .icon-wrapper { background: rgba(155, 89, 182, 0.1); color: #9b59b6; }
+    &.pending .icon-wrapper { background: rgba(241, 196, 15, 0.1); color: #f1c40f; }
+  }
+
+  .date-filters-bar {
+    .btn {
+      font-size: 13px;
+      transition: all 0.2s ease;
+      
+      &:hover:not(.bg-primary) {
+        background-color: #e9ecef !important;
+      }
+    }
+  }
+
+  .flatpickr-popover {
+    .flatpickr-calendar {
+      box-shadow: none;
+      border: none;
+      
+      .flatpickr-day.selected {
+        background: #727cf5;
+        border-color: #727cf5;
+      }
+    }
+  }
+
+  .upload-area {
+    border: 2px dashed #eee;
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      border-color: #727cf5;
+      background-color: rgba(114, 124, 245, 0.02);
+    }
+  }
+
+  .custom-outline-btn {
+    border: 2px solid #727cf5 !important;
+    color: #727cf5 !important;
+    background: transparent !important;
+    
+    &:hover {
+      background: #727cf5 !important;
+      color: #fff !important;
+    }
+  }
+
+  .shadow-primary {
+    background-color: #727cf5 !important;
+    border-color: #727cf5 !important;
+    box-shadow: 0 4px 15px rgba(114, 124, 245, 0.4) !important;
+  }
+}
+
+.invoice-modal {
+  .modal-content {
+    border: none;
+    border-radius: 20px !important;
+  }
+
+  .modal-header {
+    .btn-close {
+      position: absolute;
+      right: 25px;
+      top: 25px;
+      background-color: #f8f9fa;
+      border-radius: 50%;
+      padding: 8px;
+      font-size: 10px;
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  .invoices-page .col-xl-2-4 {
+    width: 33.33%;
+  }
+}
+
+@media (max-width: 768px) {
+  .invoices-page .col-xl-2-4 {
+    width: 100%;
+  }
+}

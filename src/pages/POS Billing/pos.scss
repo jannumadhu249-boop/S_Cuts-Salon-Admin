@@ -1,0 +1,182 @@
+.pos-page {
+  .content-card {
+    min-height: 500px;
+  }
+
+  .pos-nav-pills {
+    .nav-link {
+      color: #74788d;
+      font-weight: 500;
+      padding: 8px 25px;
+      
+      &.active {
+        background-color: #fff;
+        color: #727cf5;
+        box-shadow: 0 2px 6px rgba(114, 124, 245, 0.15);
+      }
+    }
+  }
+
+  .cart-card {
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 150px) !important;
+    
+    .empty-cart-area {
+      background-image: radial-gradient(circle, #f8f9fa 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+  }
+
+  .shadow-primary {
+    background-color: #727cf5 !important;
+    border-color: #727cf5 !important;
+    box-shadow: 0 4px 15px rgba(114, 124, 245, 0.4) !important;
+    
+    &:hover {
+      background-color: darken(#727cf5, 10%) !important;
+      transform: translateY(-1px);
+    }
+  }
+
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #727cf5, #ff4081) !important;
+    box-shadow: 0 4px 15px rgba(255, 64, 129, 0.3) !important;
+    
+    &:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+  }
+
+  .date-time-display {
+    transition: all 0.2s ease;
+    &:hover {
+      background-color: #f8f9fa !important;
+      border-color: #727cf5 !important;
+    }
+  }
+
+  .walk-in-card {
+    background-color: #f8f9fa;
+    border: 1px solid #eee;
+    
+    .bg-primary {
+      background-color: #727cf5 !important;
+    }
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+}
+
+.date-time-modal {
+  .calendar-inline-wrapper {
+    background: #fff;
+    
+    .flatpickr-calendar {
+      box-shadow: none;
+      width: 100% !important;
+      border: none;
+      font-family: inherit;
+      
+      .flatpickr-month {
+        margin-bottom: 10px;
+        color: #2a3042;
+        font-weight: 700;
+      }
+
+      .flatpickr-weekday {
+        font-weight: 600;
+        color: #74788d;
+      }
+
+      .flatpickr-day {
+        border-radius: 50%;
+        height: 38px;
+        line-height: 38px;
+        
+        &.today {
+          border-color: #727cf5;
+          color: #727cf5;
+        }
+
+        &.selected, &.selected:hover {
+          background: #727cf5 !important;
+          border-color: #727cf5 !important;
+          color: #fff;
+          box-shadow: 0 4px 10px rgba(114, 124, 245, 0.4);
+        }
+
+        &.flatpickr-disabled {
+          color: #dee2e6;
+        }
+
+        &.prevMonthDay, &.nextMonthDay {
+          color: #dee2e6;
+        }
+      }
+
+      .flatpickr-prev-month, .flatpickr-next-month {
+        padding: 10px;
+        &:hover i {
+          color: #727cf5;
+        }
+      }
+    }
+  }
+
+  .time-selectors {
+    .form-control {
+      font-weight: 600;
+    }
+  }
+}
+.pos-modal {
+  .modal-content {
+    border: none;
+    border-radius: 20px !important;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-header {
+    .btn-close {
+      position: absolute;
+      right: 25px;
+      top: 25px;
+      background-color: #f8f9fa;
+      border-radius: 50%;
+      padding: 8px;
+      font-size: 10px;
+    }
+  }
+
+  .form-label {
+    font-weight: 700;
+    font-size: 14px;
+    color: #2a3042;
+    margin-bottom: 10px;
+  }
+
+  .form-control, .form-select {
+    font-size: 15px;
+    transition: all 0.3s ease;
+    
+    &.border-primary {
+      border-color: #727cf5 !important;
+      box-shadow: 0 0 0 3px rgba(114, 124, 245, 0.1);
+    }
+  }
+}
+
+.discount-modal {
+  .bg-gradient-primary {
+    background: linear-gradient(to right, #727cf5, #e83e8c) !important;
+  }
+}
