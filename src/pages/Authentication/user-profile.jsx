@@ -1,181 +1,3 @@
-// import React, { useState, useEffect } from "react";
-// import {
-//   Container,
-//   Row,
-//   Col,
-//   Card,
-//   Alert,
-//   CardBody,
-//   Button,
-//   Label,
-//   Input,
-//   FormFeedback,
-//   Form,
-// } from "reactstrap";
-
-// // Formik Validation
-// import * as Yup from "yup";
-// import { useFormik } from "formik";
-
-// //redux
-// import { useSelector, useDispatch } from "react-redux";
-// import { createSelector } from "reselect";
-// import withRouter from "components/Common/withRouter";
-
-// //Import Breadcrumb
-// import Breadcrumb from "../../components/Common/Breadcrumb";
-
-// import avatar from "../../assets/images/users/avatar-1.jpg";
-// // actions
-// import { editProfile, resetProfileFlag } from "../../store/actions";
-
-// const UserProfile = () => {
-
-//   //meta title
-//   document.title = "Profile | S-Cuts Admin";
-
-//   const dispatch = useDispatch();
-
-//   const [email, setemail] = useState("");
-//   const [name, setname] = useState("");
-//   const [idx, setidx] = useState(1);
-
-//   const ProfileProperties = createSelector(
-//     (state) => state.Profile,
-//     (profile) => ({
-//       error: profile.error,
-//       success: profile.success,
-//     })
-//   );
-
-//   const {
-//     error,
-//     success
-//   } = useSelector(ProfileProperties);
-
-//   useEffect(() => {
-//     if (localStorage.getItem("authUser")) {
-//       const obj = JSON.parse(localStorage.getItem("authUser"));
-//       if (process.env.REACT_APP_DEFAULTAUTH === "firebase") {
-//         setname(obj.displayName);
-//         setemail(obj.email);
-//         setidx(obj.uid);
-//       } else if (
-//         process.env.REACT_APP_DEFAULTAUTH === "fake" ||
-//         process.env.REACT_APP_DEFAULTAUTH === "jwt"
-//       ) {
-//         setname(obj.username);
-//         setemail(obj.email);
-//         setidx(obj.uid);
-//       }
-//       setTimeout(() => {
-//         dispatch(resetProfileFlag());
-//       }, 3000);
-//     }
-//   }, [dispatch, success]);
-
-//   const validation = useFormik({
-//     // enableReinitialize : use this flag when initial values needs to be changed
-//     enableReinitialize: true,
-
-//     initialValues: {
-//       username: name || '',
-//       idx: idx || '',
-//     },
-//     validationSchema: Yup.object({
-//       username: Yup.string().required("Please Enter Your UserName"),
-//     }),
-//     onSubmit: (values) => {
-//       dispatch(editProfile(values));
-//     }
-//   });
-
-
-//   return (
-//     <React.Fragment>
-//       <div className="page-content">
-//         <Container fluid>
-//           {/* Render Breadcrumb */}
-//           <Breadcrumb title="S-Cuts" breadcrumbItem="Profile" />
-
-//           <Row>
-//             <Col lg="12">
-//               {error && error ? <Alert color="danger">{error}</Alert> : null}
-//               {success ? <Alert color="success">{success}</Alert> : null}
-
-//               <Card>
-//                 <CardBody>
-//                   <div className="d-flex">
-//                     <div className="ms-3">
-//                       <img
-//                         src={avatar}
-//                         alt=""
-//                         className="avatar-md rounded-circle img-thumbnail"
-//                       />
-//                     </div>
-//                     <div className="flex-grow-1 align-self-center">
-//                       <div className="text-muted">
-//                         <h5>{name}</h5>
-//                         <p className="mb-1">{email}</p>
-//                         <p className="mb-0">Id no: #{idx}</p>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </CardBody>
-//               </Card>
-//             </Col>
-//           </Row>
-
-//           <h4 className="card-title mb-4">Change User Name</h4>
-
-//           <Card>
-//             <CardBody>
-//               <Form
-//                 className="form-horizontal"
-//                 onSubmit={(e) => {
-//                   e.preventDefault();
-//                   validation.handleSubmit();
-//                   return false;
-//                 }}
-//               >
-//                 <div className="form-group">
-//                   <Label className="form-label">User Name</Label>
-//                   <Input
-//                     name="username"
-//                     // value={name}
-//                     className="form-control"
-//                     placeholder="Enter User Name"
-//                     type="text"
-//                     onChange={validation.handleChange}
-//                     onBlur={validation.handleBlur}
-//                     value={validation.values.username || ""}
-//                     invalid={
-//                       validation.touched.username && validation.errors.username ? true : false
-//                     }
-//                   />
-//                   {validation.touched.username && validation.errors.username ? (
-//                     <FormFeedback type="invalid">{validation.errors.username}</FormFeedback>
-//                   ) : null}
-//                   <Input name="idx" value={idx} type="hidden" />
-//                 </div>
-//                 <div className="text-center mt-4">
-//                   <Button type="submit" color="danger">
-//                     Update User Name
-//                   </Button>
-//                 </div>
-//               </Form>
-//             </CardBody>
-//           </Card>
-//         </Container>
-//       </div>
-//     </React.Fragment>
-//   );
-// };
-
-// export default withRouter(UserProfile);
-
-
-
 
 import React, { useState, useEffect } from "react";
 import {
@@ -194,18 +16,14 @@ import {
 
 import * as Yup from "yup";
 import { useFormik } from "formik";
-
 import { useSelector, useDispatch } from "react-redux";
 import { createSelector } from "reselect";
 import withRouter from "components/Common/withRouter";
-
 import Breadcrumb from "../../components/Common/Breadcrumb";
-
-import avatar from "../../assets/images/users/avatar-1.jpg";
-
 import { editProfile, resetProfileFlag, apiError, loginSuccess } from "../../store/actions";
 import { post, put } from "../../helpers/api_helper";
 import { URLS } from "../../url";
+
 
 const UserProfile = () => {
 
@@ -213,7 +31,7 @@ const UserProfile = () => {
 
   const dispatch = useDispatch();
 
-  const [profileImage, setProfileImage] = useState(avatar);
+  const [profileImage, setProfileImage] = useState("");
 
   const ProfileProperties = createSelector(
     (state) => state.Profile,
@@ -229,6 +47,7 @@ const UserProfile = () => {
     enableReinitialize: true,
 
     initialValues: {
+      image: "",
       username: "",
       email: "",
       phone: "",
@@ -262,10 +81,10 @@ const UserProfile = () => {
           const authUser = JSON.parse(localStorage.getItem("authUser"));
           authUser.user = response.data;
           localStorage.setItem("authUser", JSON.stringify(authUser));
-          
+
           dispatch(loginSuccess(authUser));
           dispatch({ type: "PROFILE_SUCCESS", payload: response.message });
-          
+
           setTimeout(() => {
             dispatch(resetProfileFlag());
           }, 3000);
@@ -327,12 +146,12 @@ const UserProfile = () => {
         if (response.success) {
           const updatedUser = response.data;
           setProfileImage(URLS.ImageUrl + updatedUser.image.replace(/\\/g, '/'));
-          
+
           // Update localStorage
           const authUser = JSON.parse(localStorage.getItem("authUser"));
           authUser.user = updatedUser;
           localStorage.setItem("authUser", JSON.stringify(authUser));
-          
+
           dispatch(loginSuccess(authUser));
           dispatch({ type: "PROFILE_SUCCESS", payload: response.message });
         }
@@ -408,37 +227,6 @@ const UserProfile = () => {
                     <h4 className="text-muted mb-1">
                       {validation.values.email}
                     </h4>
-
-                    {/* <Row className="g-3 mt-2">
-
-                      <Col md="6">
-                        <div className="border rounded p-3 h-100">
-                          <p className="text-muted mb-1">Email</p>
-                          <h6 className="mb-0">
-                            {validation.values.email || "N/A"}
-                          </h6>
-                        </div>
-                      </Col>
-
-                      <Col md="6">
-                        <div className="border rounded p-3 h-100">
-                          <p className="text-muted mb-1">Phone Number</p>
-                          <h6 className="mb-0">
-                            {validation.values.phone || "N/A"}
-                          </h6>
-                        </div>
-                      </Col>
-
-                      <Col md="12">
-                        <div className="border rounded p-3">
-                          <p className="text-muted mb-1">Address</p>
-                          <h6 className="mb-0">
-                            {validation.values.address || "N/A"}
-                          </h6>
-                        </div>
-                      </Col>
-
-                    </Row> */}
                   </div>
                 </Col>
 
@@ -480,14 +268,14 @@ const UserProfile = () => {
                         value={validation.values.username || ""}
                         invalid={
                           validation.touched.username &&
-                          validation.errors.username
+                            validation.errors.username
                             ? true
                             : false
                         }
                       />
 
                       {validation.touched.username &&
-                      validation.errors.username ? (
+                        validation.errors.username ? (
                         <FormFeedback>
                           {validation.errors.username}
                         </FormFeedback>
@@ -511,14 +299,14 @@ const UserProfile = () => {
                         value={validation.values.email || ""}
                         invalid={
                           validation.touched.email &&
-                          validation.errors.email
+                            validation.errors.email
                             ? true
                             : false
                         }
                       />
 
                       {validation.touched.email &&
-                      validation.errors.email ? (
+                        validation.errors.email ? (
                         <FormFeedback>
                           {validation.errors.email}
                         </FormFeedback>
@@ -542,14 +330,14 @@ const UserProfile = () => {
                         value={validation.values.phone || ""}
                         invalid={
                           validation.touched.phone &&
-                          validation.errors.phone
+                            validation.errors.phone
                             ? true
                             : false
                         }
                       />
 
                       {validation.touched.phone &&
-                      validation.errors.phone ? (
+                        validation.errors.phone ? (
                         <FormFeedback>
                           {validation.errors.phone}
                         </FormFeedback>
@@ -574,14 +362,14 @@ const UserProfile = () => {
                         value={validation.values.address || ""}
                         invalid={
                           validation.touched.address &&
-                          validation.errors.address
+                            validation.errors.address
                             ? true
                             : false
                         }
                       />
 
                       {validation.touched.address &&
-                      validation.errors.address ? (
+                        validation.errors.address ? (
                         <FormFeedback>
                           {validation.errors.address}
                         </FormFeedback>

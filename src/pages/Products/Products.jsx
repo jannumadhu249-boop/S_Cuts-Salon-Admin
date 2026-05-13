@@ -62,6 +62,7 @@ const Products = () => {
                       <th className="ps-4" style={{ width: '40px' }}>
                         <i className="bx bx-circle fs-5 opacity-50"></i>
                       </th>
+                      <th>Image</th>
                       <th>Product</th>
                       <th>Cost</th>
                       <th>Price</th>
@@ -157,6 +158,35 @@ const Products = () => {
                   </FormGroup>
                 </Col>
               </Row>
+              <Row className="mt-3">
+                <Col md={12}>
+                  <Label className="fw-bold small mb-2">
+                    Product Image
+                  </Label>
+                  <div className="d-flex align-items-center gap-3">
+                    {/* Custom file upload button */}
+                    <div className="file-upload-wrapper position-relative">
+                      <Button color="light" className="rounded-3 px-4 py-2 bg-white border">
+                        <i className="bx bx-upload me-1"></i> Choose Image
+                      </Button>
+                      <Input
+                        type="file"
+                        className="position-absolute top-0 start-0 w-100 h-100 opacity-0"
+                        accept="image/*"
+                      // onChange={handleImageChange}
+                      />
+                    </div>
+                    {/* Image preview placeholder */}
+                    <div className="image-preview-placeholder bg-light d-flex align-items-center justify-content-center rounded-3"
+                      style={{ width: 64, height: 64, border: '1px dashed #dee2e6' }}>
+                      {/* If no image selected, show icon; else show preview */}
+                      <i className="bx bx-image text-muted fs-4"></i>
+                      {/* <img src={previewUrl} alt="preview" className="w-100 h-100 object-fit-cover rounded-3" /> */}
+                    </div>
+                  </div>
+                  <small className="text-muted">Supported formats: JPG, PNG. Max size: 2MB.</small>
+                </Col>
+              </Row>
             </ModalBody>
             <ModalFooter className="border-0 px-5 pb-5 pt-0 gap-3">
               <Button color="light" className="rounded-pill px-4 py-2 fw-bold bg-white border" onClick={toggleAddModal}>
@@ -172,7 +202,7 @@ const Products = () => {
         {/* Import CSV Modal */}
         <Modal isOpen={importModal} toggle={toggleImportModal} centered className="inventory-modal modal-lg">
           <div className="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
-            <ModalHeader toggle={toggleImportModal} className="border-0 pb-0 px-4 pt-4 justify-content-center position-relative">
+            {/* <ModalHeader toggle={toggleImportModal} className="border-0 pb-0 px-4 pt-4 justify-content-center position-relative">
               <div className="d-flex align-items-center justify-content-center w-100 mb-2">
                 <i className="bx bx-file text-dark fs-4 me-2"></i>
                 <h4 className="fw-bold mb-0">Import Inventory</h4>
@@ -180,7 +210,7 @@ const Products = () => {
               <p className="text-muted small text-center mb-0 mt-2">
                 Upload a xl file to bulk import inventory items. Existing SKUs will be updated.
               </p>
-            </ModalHeader>
+            </ModalHeader> */}
             <ModalBody className="px-5 py-4">
               {/* Template Download Section */}
               <div className="bg-light bg-opacity-50 rounded-4 p-4 mb-4 d-flex justify-content-between align-items-center border">

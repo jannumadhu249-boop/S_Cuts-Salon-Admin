@@ -185,6 +185,8 @@ import Staff from "pages/StaffManagement/Staff";
 import Products from "pages/Products/Products";
 import Reports from "pages/BranchReports/Reports";
 import Changepassword from "pages/Authentication/Changepassword";
+import Category from "pages/Category/Category";
+import EditPackage from "pages/Services/Editpackage";
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
@@ -344,6 +346,7 @@ const authProtectedRoutes = [
   { path: "/services", component: <Services />},
   { path: "/service-packages", component: <ServicePackages />},
   { path: "/create-package", component: <CreatePackage />},
+  { path: "/edit-package", component: <EditPackage /> },
   { path: "/coupons", component: <Coupons />},
   { path: "/create-coupon", component: <CreateCoupons />},
   { path: "/customers", component: <Customers />},
@@ -351,6 +354,7 @@ const authProtectedRoutes = [
   { path: "/staff", component: <Staff />},
   { path: "/products", component: <Products />},
   { path: "/reports", component: <Reports />},
+  { path: "/category", component: <Category />},
   
 ];
 

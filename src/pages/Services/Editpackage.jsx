@@ -13,17 +13,21 @@ import {
   Alert,
   Spinner
 } from "reactstrap"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useLocation } from "react-router-dom"
 import Flatpickr from "react-flatpickr"
-import { post } from "../../helpers/api_helper"
+import { post, put } from "../../helpers/api_helper"
 import { URLS } from "../../url"
 
 // Styles
 import "./services.scss"
 
-const CreatePackage = () => {
+const EditPackage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const packageId = location.state?.id
+
   const [loading, setLoading] = useState(false)
+  const [fetchingData, setFetchingData] = useState(true)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
@@ -33,7 +37,7 @@ const CreatePackage = () => {
   const [description, setDescription] = useState("")
   const [validFrom, setValidFrom] = useState(new Date())
   const [validUntil, setValidUntil] = useState(new Date())
-  const [applicableFor, setApplicableFor] = useState(["POS", "Appointments", "Walk-ins"])
+  const [applicableFor, setApplicableFor] = useState([])
   const [status, setStatus] = useState("active")
   const [selectedServices, setSelectedServices] = useState([])
 
@@ -56,9 +60,37 @@ const CreatePackage = () => {
     }
   }, [])
 
+  const fetchPackageDetails = useCallback(async () => {
+    if (!packageId) return
+    setFetchingData(true)
+    try {
+      const response = await post(URLS.GetByIdServicePackage, { id: packageId })
+      if (response.success) {
+        const data = response.data
+        setPackageName(data.packageName)
+        setPackagePrice(data.packagePrice)
+        setDescription(data.description)
+        setValidFrom(new Date(data.validFrom))
+        setValidUntil(new Date(data.validUntil))
+        setApplicableFor(data.applicableFor || [])
+        setStatus(data.status || "active")
+        // Map services to just IDs
+        const sIds = data.services ? data.services.map(s => s.serviceId || s._id) : []
+        setSelectedServices(sIds)
+      } else {
+        setError(response.message || "Failed to fetch package details")
+      }
+    } catch (err) {
+      setError("An error occurred while fetching package details")
+    } finally {
+      setFetchingData(false)
+    }
+  }, [packageId])
+
   useEffect(() => {
     fetchServices()
-  }, [fetchServices])
+    fetchPackageDetails()
+  }, [fetchServices, fetchPackageDetails])
 
   const handleApplicableToggle = (item) => {
     setApplicableFor(prev => {
@@ -80,7 +112,7 @@ const CreatePackage = () => {
     })
   }
 
-  const handleSubmit = async (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault()
     if (selectedServices.length === 0) {
       setError("Please select at least one service.")
@@ -95,20 +127,20 @@ const CreatePackage = () => {
       packageName,
       packagePrice: parseFloat(packagePrice),
       description,
-      validFrom: validFrom[0] ? validFrom[0].toISOString().split('T')[0] : validFrom.toISOString().split('T')[0],
-      validUntil: validUntil[0] ? validUntil[0].toISOString().split('T')[0] : validUntil.toISOString().split('T')[0],
+      validFrom: validFrom instanceof Array ? validFrom[0].toISOString().split('T')[0] : (validFrom instanceof Date ? validFrom.toISOString().split('T')[0] : validFrom),
+      validUntil: validUntil instanceof Array ? validUntil[0].toISOString().split('T')[0] : (validUntil instanceof Date ? validUntil.toISOString().split('T')[0] : validUntil),
       applicableFor,
       services: selectedServices,
       status
     }
 
     try {
-      const response = await post(URLS.AddServicePackage, payload)
+      const response = await put(URLS.UpdateServicePackage + packageId, payload)
       if (response.success) {
-        setSuccess(response.message || "Package created successfully")
+        setSuccess(response.message || "Package updated successfully")
         setTimeout(() => navigate("/service-packages"), 2000)
       } else {
-        setError(response.message || "Failed to create package")
+        setError(response.message || "Failed to update package")
       }
     } catch (err) {
       setError(err.response?.data?.message || "An error occurred")
@@ -117,7 +149,7 @@ const CreatePackage = () => {
     }
   }
 
-  const filteredServices = allServices.filter(s =>
+  const filteredServices = allServices.filter(s => 
     s.serviceName.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
@@ -125,6 +157,15 @@ const CreatePackage = () => {
   const originalPrice = selectedServicesData.reduce((acc, s) => acc + parseFloat(s.price || 0), 0)
   const savingsAmount = originalPrice - (parseFloat(packagePrice) || 0)
   const savingsPercentage = originalPrice > 0 ? (savingsAmount / originalPrice) * 100 : 0
+
+  if (fetchingData && !error) {
+    return (
+      <div className="page-content text-center py-5">
+        <Spinner color="primary" />
+        <p className="mt-2">Loading package details...</p>
+      </div>
+    )
+  }
 
   return (
     <React.Fragment>
@@ -137,17 +178,17 @@ const CreatePackage = () => {
                 <i className="bx bx-left-arrow-alt fs-2"></i>
               </Link>
               <div>
-                <h3 className="fw-bold mb-0 text-dark">Create Package</h3>
-                <p className="text-muted mb-0">Create a new service combo package</p>
+                <h3 className="fw-bold mb-0 text-dark">Edit Package</h3>
+                <p className="text-muted mb-0">Update this service combo package</p>
               </div>
             </div>
-            <Button
-              color="primary"
+            <Button 
+              color="primary" 
               className="rounded-pill px-4 shadow-primary"
-              onClick={handleSubmit}
+              onClick={handleUpdate}
               disabled={loading}
             >
-              {loading ? <Spinner size="sm" /> : "Create Package"}
+              {loading ? <Spinner size="sm" /> : "Update Package"}
             </Button>
           </div>
 
@@ -169,9 +210,9 @@ const CreatePackage = () => {
                     <Col md={6}>
                       <FormGroup className="mb-4">
                         <Label className="fw-bold small mb-2">Package Name *</Label>
-                        <Input
-                          type="text"
-                          placeholder="e.g., Complete Relaxation Package"
+                        <Input 
+                          type="text" 
+                          placeholder="e.g., Complete Relaxation Package" 
                           className="rounded-4 bg-light border-0 px-3 py-2"
                           value={packageName}
                           onChange={(e) => setPackageName(e.target.value)}
@@ -184,9 +225,9 @@ const CreatePackage = () => {
                         <Label className="fw-bold small mb-2">Package Price *</Label>
                         <div className="position-relative">
                           <i className="bx bx-rupee position-absolute start-0 top-50 translate-middle-y ms-3 text-muted"></i>
-                          <Input
-                            type="number"
-                            placeholder="0"
+                          <Input 
+                            type="number" 
+                            placeholder="0" 
                             className="rounded-4 bg-light border-0 ps-5 py-2"
                             value={packagePrice}
                             onChange={(e) => setPackagePrice(e.target.value)}
@@ -198,10 +239,10 @@ const CreatePackage = () => {
                     <Col md={12}>
                       <FormGroup className="mb-4">
                         <Label className="fw-bold small mb-2">Description</Label>
-                        <Input
-                          type="textarea"
+                        <Input 
+                          type="textarea" 
                           rows="3"
-                          placeholder="Describe what's included in this package..."
+                          placeholder="Describe what's included in this package..." 
                           className="rounded-4 bg-light border-0 px-3 py-2"
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
@@ -244,10 +285,10 @@ const CreatePackage = () => {
                         <div className="d-flex gap-4">
                           {["POS", "Appointments", "Walk-ins"].map(item => (
                             <div key={item} className="d-flex align-items-center gap-2">
-                              <Input
-                                type="checkbox"
-                                id={`applicable-${item}`}
-                                className="custom-check-purple cursor-pointer"
+                              <Input 
+                                type="checkbox" 
+                                id={`applicable-${item}`} 
+                                className="custom-check-purple cursor-pointer" 
                                 checked={applicableFor.includes(item)}
                                 onChange={() => handleApplicableToggle(item)}
                                 style={{ cursor: 'pointer' }}
@@ -265,9 +306,9 @@ const CreatePackage = () => {
                           <p className="text-muted small mb-0">Enable to make this package available</p>
                         </div>
                         <div className="form-check form-switch form-switch-md">
-                          <Input
-                            type="switch"
-                            id="activeStatusSwitch"
+                          <Input 
+                            type="switch" 
+                            id="activeStatusSwitch" 
                             checked={status === "active"}
                             onChange={(e) => setStatus(e.target.checked ? "active" : "inactive")}
                             className="custom-switch-purple cursor-pointer"
@@ -285,7 +326,7 @@ const CreatePackage = () => {
                 <CardBody className="p-4">
                   <h5 className="fw-bold mb-1">Select Services</h5>
                   <p className="text-muted small mb-4">Choose services to include in this package</p>
-
+                  
                   <div className="search-box bg-light rounded-pill border-0 px-4 py-2 d-flex align-items-center mb-4">
                     <i className="bx bx-search text-muted me-2"></i>
                     <Input
@@ -304,8 +345,8 @@ const CreatePackage = () => {
                       filteredServices.map(service => (
                         <div key={service._id} className="d-flex align-items-center justify-content-between p-3 border-bottom service-item-hover">
                           <div className="d-flex align-items-center gap-3">
-                            <Input
-                              type="checkbox"
+                            <Input 
+                              type="checkbox" 
                               id={`service-${service._id}`}
                               checked={selectedServices.includes(service._id)}
                               onChange={() => handleServiceToggle(service._id)}
@@ -349,7 +390,7 @@ const CreatePackage = () => {
               <Card className="border-0 rounded-4 shadow-sm sticky-top" style={{ top: '100px' }}>
                 <CardBody className="p-4">
                   <h5 className="fw-bold mb-4">Package Summary</h5>
-
+                  
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <span className="text-muted small">Services</span>
                     <Badge color={selectedServices.length > 0 ? "success" : "danger"} className="rounded-pill px-2 py-1">
@@ -407,4 +448,4 @@ const CreatePackage = () => {
   )
 }
 
-export default CreatePackage
+export default EditPackage
