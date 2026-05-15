@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import {
   Container,
   Row,
@@ -13,7 +13,13 @@ import {
   ModalFooter,
   Label,
   FormGroup,
+  Spinner,
+  Badge,
+  Alert
 } from "reactstrap"
+import { post, put, del } from "../../helpers/api_helper"
+import { URLS } from "../../url"
+import { toast } from "react-toastify"
 import classNames from "classnames"
 import Flatpickr from "react-flatpickr"
 
@@ -21,13 +27,147 @@ import Flatpickr from "react-flatpickr"
 import "./customers.scss"
 
 const Customers = () => {
+  const [customers, setCustomers] = useState([])
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("active")
   const [addModal, setAddModal] = useState(false)
   const [importModal, setImportModal] = useState(false)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [isEdit, setIsEdit] = useState(false)
+  const [currentCustomer, setCurrentCustomer] = useState(null)
+  const [deleteModal, setDeleteModal] = useState(false)
+  const [customerToDelete, setCustomerToDelete] = useState(null)
 
-  const toggleAddModal = () => setAddModal(!addModal)
+  // Form State
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    gender: "",
+    dateOfBirth: "",
+    source: "",
+    notes: ""
+  })
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const toggleAddModal = () => {
+    setAddModal(!addModal)
+    if (addModal) {
+      resetForm()
+    }
+  }
   const toggleImportModal = () => setImportModal(!importModal)
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      phone: "",
+      email: "",
+      gender: "",
+      dateOfBirth: "",
+      source: "",
+      notes: ""
+    })
+    setIsEdit(false)
+    setCurrentCustomer(null)
+  }
+
+  const fetchCustomers = useCallback(async () => {
+    setLoading(true)
+    try {
+      const url = `${URLS.GetAllCustomers}?page=${currentPage}&limit=${pageSize}${searchTerm ? `&search=${searchTerm}` : ""}`
+      const response = await post(url, {})
+      if (response.success) {
+        setCustomers(response.data || [])
+        setTotalPages(response.totalPages || 1)
+        setTotalRecords(response.totalRecords || 0)
+      } else {
+        toast.error(response.message || "Failed to fetch customers")
+      }
+    } catch (error) {
+      toast.error("An error occurred while fetching customers")
+    } finally {
+      setLoading(false)
+    }
+  }, [currentPage, pageSize, searchTerm])
+
+  useEffect(() => {
+    fetchCustomers()
+  }, [fetchCustomers])
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value)
+    setCurrentPage(1)
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      let response
+      if (isEdit) {
+        response = await put(URLS.UpdateCustomers + currentCustomer._id, formData)
+      } else {
+        response = await post(URLS.AddCustomers, formData)
+      }
+
+      if (response.success) {
+        toast.success(response.message || `Customer ${isEdit ? "updated" : "added"} successfully`)
+        toggleAddModal()
+        fetchCustomers()
+      } else {
+        toast.error(response.message || "Operation failed")
+      }
+    } catch (error) {
+      toast.error("An error occurred")
+    }
+  }
+
+  const handleEdit = (customer) => {
+    setIsEdit(true)
+    setCurrentCustomer(customer)
+    setFormData({
+      name: customer.name || "",
+      phone: customer.phone || "",
+      email: customer.email || "",
+      gender: customer.gender || "",
+      dateOfBirth: customer.dateOfBirth || "",
+      source: customer.source || "",
+      notes: customer.notes || ""
+    })
+    setAddModal(true)
+  }
+
+  const handleDelete = (customer) => {
+    setCustomerToDelete(customer)
+    setDeleteModal(true)
+  }
+
+  const confirmDelete = async () => {
+    try {
+      const response = await del(URLS.DeleteCustomers + customerToDelete._id)
+      if (response.success) {
+        toast.success(response.message || "Customer deleted successfully")
+        fetchCustomers()
+      } else {
+        toast.error(response.message || "Failed to delete customer")
+      }
+    } catch (error) {
+      toast.error("An error occurred")
+    } finally {
+      setDeleteModal(false)
+      setCustomerToDelete(null)
+    }
+  }
 
   return (
     <React.Fragment>
@@ -60,7 +200,7 @@ const Customers = () => {
               })}
               onClick={() => setActiveTab("active")}
             >
-              <i className="bx bx-user me-1"></i> Active (0)
+              <i className="bx bx-user me-1"></i> Active ({activeTab === 'active' ? totalRecords : 0})
             </Button>
             <Button
               className={classNames("rounded-pill px-4 py-1 border-0 small fw-bold", {
@@ -82,6 +222,8 @@ const Customers = () => {
                   type="text"
                   placeholder="Search by name or phone..."
                   className="border-0 bg-transparent p-0 form-control"
+                  value={searchTerm}
+                  onChange={handleSearch}
                 />
               </div>
             </div>
@@ -90,8 +232,8 @@ const Customers = () => {
                 <table className="table table-hover align-middle mb-0 custom-table">
                   <thead className="bg-light bg-opacity-50 text-muted small text-uppercase fw-bold ls-1">
                     <tr>
-                      <th className="ps-4" style={{ width: '50px' }}>
-                        <Input type="checkbox" className="custom-check-purple" />
+                      <th className="ps-4">
+                        Sl. No.
                       </th>
                       <th>Customer Name</th>
                       <th>Contact Number</th>
@@ -99,16 +241,71 @@ const Customers = () => {
                       <th>Notes</th>
                       <th>Visits</th>
                       <th>Total Spent</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td colSpan="7" className="py-5 text-center">
-                        <div className="empty-state opacity-50">
-                          <h6 className="text-muted mb-0">No customers found</h6>
-                        </div>
-                      </td>
-                    </tr>
+                    {loading ? (
+                      <tr>
+                        <td colSpan="8" className="text-center py-5">
+                          <Spinner color="primary" />
+                        </td>
+                      </tr>
+                    ) : customers.length > 0 ? (
+                      customers.map((customer, index) => (
+                        <tr key={customer._id}>
+                          <td className="ps-4">
+                            {(currentPage - 1) * pageSize + index + 1}
+                          </td>
+                          <td>
+                            <div className="d-flex align-items-center">
+                              <div className="avatar-xs me-2">
+                                <span className="avatar-title rounded-circle bg-primary bg-opacity-10 text-primary fw-bold">
+                                  {customer.name?.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <span className="fw-medium">{customer.name}</span>
+                            </div>
+                          </td>
+                          <td>{customer.phone}</td>
+                          <td>
+                            <Badge color="info" className="bg-opacity-10 text-info border-0 rounded-pill px-2">
+                              {customer.source || 'Direct'}
+                            </Badge>
+                          </td>
+                          <td className="text-muted small text-truncate" style={{ maxWidth: '150px' }}>{customer.notes || '-'}</td>
+                          <td>0</td>
+                          <td className="fw-bold">₹0</td>
+                          <td className="text-center">
+                            <div className="d-flex justify-content-center gap-3">
+                              <button
+                                type="button"
+                                className="border-0 bg-transparent p-0"
+                                onClick={() => handleEdit(customer)}
+                              >
+                                <i className="bx bx-edit-alt text-primary fs-5"></i>
+                              </button>
+                              <button
+                                type="button"
+                                className="border-0 bg-transparent p-0"
+                                onClick={() => handleDelete(customer)}
+                              >
+                                <i className="bx bx-trash text-danger fs-5"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="8" className="py-5 text-center">
+                          <div className="empty-state opacity-50">
+                            <i className="bx bx-user-voice display-4 mb-3 d-block"></i>
+                            <h6 className="text-muted mb-0">No customers found</h6>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -117,29 +314,44 @@ const Customers = () => {
             {/* Pagination Footer */}
             <div className="table-footer border-top px-4 py-3 d-flex justify-content-between align-items-center bg-white">
               <div className="d-flex align-items-center gap-3">
-                <span className="text-muted small">Showing 0-0 of 0 customers</span>
+                <span className="text-muted small">
+                  Showing {Math.min((currentPage - 1) * pageSize + 1, totalRecords)} to {Math.min(currentPage * pageSize, totalRecords)} of {totalRecords} customers
+                </span>
                 <div className="d-flex align-items-center gap-2">
                   <span className="text-muted small">Rows per page:</span>
-                  <Input 
-                    type="select" 
-                    className="form-select form-select-sm rounded-pill border-0 shadow-sm bg-light px-3" 
-                    style={{ width: '70px' }}
-                    value={rowsPerPage}
-                    onChange={(e) => setRowsPerPage(e.target.value)}
+                  <Input
+                    type="select"
+                    className="form-select form-select-sm rounded-pill border-0 shadow-sm bg-light px-3"
+                    style={{ width: '80px' }}
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(parseInt(e.target.value))
+                      setCurrentPage(1)
+                    }}
                   >
-                    <option>10</option>
-                    <option>25</option>
-                    <option>50</option>
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
                   </Input>
                 </div>
               </div>
-              
+
               <div className="pagination-controls d-flex align-items-center gap-3">
-                <Button color="light" className="rounded-pill px-3 py-1 bg-white border small d-flex align-items-center gap-1 opacity-50" disabled>
+                <Button
+                  color="light"
+                  className="rounded-pill px-3 py-1 bg-white border small d-flex align-items-center gap-1"
+                  disabled={currentPage === 1 || loading}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                >
                   <i className="bx bx-chevron-left"></i> Previous
                 </Button>
-                <span className="text-muted small fw-medium">Page 1 of 1</span>
-                <Button color="light" className="rounded-pill px-3 py-1 bg-white border small d-flex align-items-center gap-1 opacity-50" disabled>
+                <span className="text-muted small fw-medium">Page {currentPage} of {totalPages}</span>
+                <Button
+                  color="light"
+                  className="rounded-pill px-3 py-1 bg-white border small d-flex align-items-center gap-1"
+                  disabled={currentPage === totalPages || loading}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                >
                   Next <i className="bx bx-chevron-right"></i>
                 </Button>
               </div>
@@ -152,79 +364,124 @@ const Customers = () => {
           <div className="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
             <ModalHeader toggle={toggleAddModal} className="border-0 pb-0 px-4 pt-4 justify-content-center position-relative">
               <div className="text-center w-100">
-                <h4 className="fw-bold mb-1">Add New Customer</h4>
-                <p className="text-muted small mb-0">Create a new customer profile.</p>
+                <h4 className="fw-bold mb-1">{isEdit ? "Update Customer" : "Add New Customer"}</h4>
+                <p className="text-muted small mb-0">{isEdit ? "Modify existing customer profile." : "Create a new customer profile."}</p>
               </div>
             </ModalHeader>
             <ModalBody className="px-5 py-4">
-              <Row>
-                <Col md={6}>
-                  <FormGroup className="mb-4">
-                    <Label className="fw-bold small mb-2">Name *</Label>
-                    <Input type="text" className="rounded-4 bg-light border-0 px-3 py-2 custom-focus-purple" />
-                  </FormGroup>
-                </Col>
-                <Col md={6}>
-                  <FormGroup className="mb-4">
-                    <Label className="fw-bold small mb-2">Phone</Label>
-                    <div className="d-flex gap-2">
-                      <Input type="select" className="rounded-4 bg-light border-0 px-2 py-2 small" style={{ width: '150px' }}>
-                        <option>IN +91</option>
+              <form onSubmit={handleSubmit}>
+                <Row>
+                  <Col md={6}>
+                    <FormGroup className="mb-4">
+                      <Label className="fw-bold small mb-2">Name *</Label>
+                      <Input
+                        type="text"
+                        name="name"
+                        className="rounded-4 bg-light border-0 px-3 py-2 custom-focus-purple"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </FormGroup>
+                  </Col>
+                  <Col md={6}>
+                    <FormGroup className="mb-4">
+                      <Label className="fw-bold small mb-2">Phone *</Label>
+                      <Input
+                        type="text"
+                        name="phone"
+                        placeholder="Phone number"
+                        className="rounded-4 bg-light border-0 px-3 py-2 w-100"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </FormGroup>
+                  </Col>
+                  <Col md={6}>
+                    <FormGroup className="mb-4">
+                      <Label className="fw-bold small mb-2">Email</Label>
+                      <Input
+                        type="email"
+                        name="email"
+                        className="rounded-4 bg-light border-0 px-3 py-2"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                      />
+                    </FormGroup>
+                  </Col>
+                  <Col md={6}>
+                    <FormGroup className="mb-4">
+                      <Label className="fw-bold small mb-2">Gender (Optional)</Label>
+                      <Input
+                        type="select"
+                        name="gender"
+                        className="rounded-4 bg-light border-0 px-3 py-2 form-select small"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                      >
+                        <option value="">Prefer not to say</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
                       </Input>
-                      <Input type="text" placeholder="Phone nu" className="rounded-4 bg-light border-0 px-3 py-2 flex-grow-1" />
-                    </div>
-                  </FormGroup>
-                </Col>
-                <Col md={6}>
-                  <FormGroup className="mb-4">
-                    <Label className="fw-bold small mb-2">Email</Label>
-                    <Input type="email" className="rounded-4 bg-light border-0 px-3 py-2" />
-                  </FormGroup>
-                </Col>
-                <Col md={6}>
-                  <FormGroup className="mb-4">
-                    <Label className="fw-bold small mb-2">Gender (Optional)</Label>
-                    <Input type="select" className="rounded-4 bg-light border-0 px-3 py-2 form-select small">
-                      <option>Prefer not to say</option>
-                      <option>Male</option>
-                      <option>Female</option>
-                    </Input>
-                  </FormGroup>
-                </Col>
-                <Col md={6}>
-                  <FormGroup className="mb-4">
-                    <Label className="fw-bold small mb-2">Date of Birth (Optional)</Label>
-                    <div className="bg-light rounded-4 px-3 py-2 d-flex align-items-center">
-                      <Flatpickr className="form-control border-0 bg-transparent p-0 small" placeholder="dd-mm-yyyy" options={{ dateFormat: "d-m-Y" }} />
-                      <i className="bx bx-calendar text-muted"></i>
-                    </div>
-                  </FormGroup>
-                </Col>
-                <Col md={6}>
-                  <FormGroup className="mb-4">
-                    <Label className="fw-bold small mb-2">Source (Optional)</Label>
-                    <Input type="select" className="rounded-4 bg-light border-0 px-3 py-2 form-select small">
-                      <option>Not specified</option>
-                      <option>Social Media</option>
-                      <option>Referral</option>
-                      <option>Walk-in</option>
-                    </Input>
-                  </FormGroup>
-                </Col>
-                <Col md={12}>
-                  <FormGroup className="mb-0">
-                    <Label className="fw-bold small mb-2">Notes</Label>
-                    <Input type="textarea" rows="3" className="rounded-4 bg-light border-0 px-3 py-2" />
-                  </FormGroup>
-                </Col>
-              </Row>
+                    </FormGroup>
+                  </Col>
+                  <Col md={6}>
+                    <FormGroup className="mb-4">
+                      <Label className="fw-bold small mb-2">Date of Birth (Optional)</Label>
+                      <div className="bg-light rounded-4 px-3 py-2 d-flex align-items-center">
+                        <Flatpickr
+                          className="form-control border-0 bg-transparent p-0 small"
+                          placeholder="dd-mm-yyyy"
+                          options={{ dateFormat: "Y-m-d" }}
+                          value={formData.dateOfBirth}
+                          onChange={date => setFormData(prev => ({ ...prev, dateOfBirth: date[0] ? date[0].toISOString().split('T')[0] : "" }))}
+                        />
+                        <i className="bx bx-calendar text-muted"></i>
+                      </div>
+                    </FormGroup>
+                  </Col>
+                  <Col md={6}>
+                    <FormGroup className="mb-4">
+                      <Label className="fw-bold small mb-2">Source (Optional)</Label>
+                      <Input
+                        type="select"
+                        name="source"
+                        className="rounded-4 bg-light border-0 px-3 py-2 form-select small"
+                        value={formData.source}
+                        onChange={handleInputChange}
+                      >
+                        <option value="">Not specified</option>
+                        <option value="online">Online</option>
+                        <option value="social_media">Social Media</option>
+                        <option value="referral">Referral</option>
+                        <option value="walk-in">Walk-in</option>
+                      </Input>
+                    </FormGroup>
+                  </Col>
+                  <Col md={12}>
+                    <FormGroup className="mb-0">
+                      <Label className="fw-bold small mb-2">Notes</Label>
+                      <Input
+                        type="textarea"
+                        name="notes"
+                        rows="3"
+                        className="rounded-4 bg-light border-0 px-3 py-2"
+                        value={formData.notes}
+                        onChange={handleInputChange}
+                      />
+                    </FormGroup>
+                  </Col>
+                </Row>
+              </form>
             </ModalBody>
             <ModalFooter className="border-0 px-5 pb-5 pt-0 gap-3">
               <Button color="light" className="rounded-pill px-4 py-2 fw-bold bg-white border" onClick={toggleAddModal}>
                 Cancel
               </Button>
-              <Button color="primary" className="rounded-pill px-4 py-2 fw-bold shadow-primary">
-                Add Customer
+              <Button color="primary" className="rounded-pill px-4 py-2 fw-bold shadow-primary" onClick={handleSubmit}>
+                {isEdit ? "Update Customer" : "Add Customer"}
               </Button>
             </ModalFooter>
           </div>
@@ -266,6 +523,29 @@ const Customers = () => {
               </Button>
               <Button color="primary" className="rounded-pill px-4 py-2 fw-bold shadow-primary opacity-50" disabled>
                 <i className="bx bx-upload me-1"></i> Import 0 Customers
+              </Button>
+            </ModalFooter>
+          </div>
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <Modal isOpen={deleteModal} toggle={() => setDeleteModal(false)} centered>
+          <div className="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <ModalHeader toggle={() => setDeleteModal(false)} className="border-0 pb-0 px-4 pt-4 justify-content-center position-relative">
+              <div className="text-center w-100">
+                <div className="icon-circle bg-danger bg-opacity-10 text-danger mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style={{ width: '60px', height: '60px' }}>
+                  <i className="bx bx-trash fs-2"></i>
+                </div>
+                <h4 className="fw-bold mb-1">Are you sure?</h4>
+                <p className="text-muted small mb-0">You won't be able to revert this!</p>
+              </div>
+            </ModalHeader>
+            <ModalFooter className="border-0 px-5 pb-5 pt-4 gap-3 justify-content-center">
+              <Button color="light" className="rounded-pill px-4 py-2 fw-bold bg-white border" onClick={() => setDeleteModal(false)}>
+                Cancel
+              </Button>
+              <Button color="danger" className="rounded-pill px-4 py-2 fw-bold shadow-sm" onClick={confirmDelete}>
+                Yes, delete it!
               </Button>
             </ModalFooter>
           </div>

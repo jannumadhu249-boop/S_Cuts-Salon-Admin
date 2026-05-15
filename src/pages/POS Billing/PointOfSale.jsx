@@ -87,14 +87,14 @@ const PointOfSale = () => {
                       <i className="bx bx-user fs-5"></i>
                       <span>Select Customer</span>
                     </Button>
-                    <Button 
+                    {/* <Button 
                       color="primary" 
                       className="rounded-pill px-5 d-flex align-items-center gap-2"
                       onClick={() => setSelectedCustomer('walk-in')}
                     >
                       <i className="bx bx-user-voice fs-5"></i>
                       <span>Walk-In</span>
-                    </Button>
+                    </Button> */}
                   </div>
                 ) : (
                   <div className="walk-in-card p-2 rounded-4 bg-light border position-relative d-flex align-items-center gap-3">
@@ -194,10 +194,7 @@ const PointOfSale = () => {
                     <span className="badge rounded-pill bg-danger ms-1">0</span>
                   </div>
                   <div className="cart-header-actions d-flex gap-3 text-muted">
-                    <i className="bx bx-file fs-5 cursor-pointer" title="Notes"></i>
                     <i className="bx bx-gift fs-5 cursor-pointer text-warning" title="Add Tip" onClick={toggleTipModal}></i>
-                    <i className="bx bx-user fs-5 cursor-pointer" title="Select Staff"></i>
-                    <i className="bx bx-group fs-5 cursor-pointer" title="Groups"></i>
                   </div>
                 </div>
 

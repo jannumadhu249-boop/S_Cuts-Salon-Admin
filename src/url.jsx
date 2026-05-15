@@ -40,4 +40,23 @@ export const URLS = {
     UpdateServicePackage: base_url + "v1/ScutsApi/admin/servicePackages/updatePackage/",
     DeleteServicePackage: base_url + "v1/ScutsApi/admin/servicePackages/deletePackage/",
     GetByIdServicePackage: base_url + "v1/ScutsApi/admin/servicePackages/getPackageById",
+
+    //Products
+    GetAllProducts: base_url + "v1/ScutsApi/admin/products/getAllProducts",
+    SearchProducts: base_url + "v1/ScutsApi/admin/products/getAllProducts?search=",
+    ProductsPagination: base_url + "v1/ScutsApi/admin/products/getAllProducts?page=",
+    AddProducts: base_url + "v1/ScutsApi/admin/products/createProduct",
+    UpdateProducts: base_url + "v1/ScutsApi/admin/products/updateProduct/",
+    DeleteProducts: base_url + "v1/ScutsApi/admin/products/deleteProduct/",
+    GetByIdProducts: base_url + "v1/ScutsApi/admin/products/getProductById",
+
+    //Customers
+    GetAllCustomers: base_url + "v1/ScutsApi/admin/customers/getAllCustomers",
+    SearchCustomers: base_url + "v1/ScutsApi/admin/customers/getAllCustomers?search=",
+    CustomersPagination: base_url + "v1/ScutsApi/admin/customers/getAllCustomers?page=",
+    AddCustomers: base_url + "v1/ScutsApi/admin/customers/createCustomer",
+    UpdateCustomers: base_url + "v1/ScutsApi/admin/customers/updateCustomer/",
+    DeleteCustomers: base_url + "v1/ScutsApi/admin/customers/deleteCustomer/",
+    GetByIdCustomers: base_url + "v1/ScutsApi/admin/customers/getCustomerById",
+    
 }

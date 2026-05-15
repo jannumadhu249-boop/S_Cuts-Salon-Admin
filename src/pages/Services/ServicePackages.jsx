@@ -172,7 +172,7 @@ const ServicePackages = () => {
                           {pkg.validFrom} - {pkg.validUntil}
                         </Col>
                         <Col className="text-end">
-                          <div className="d-flex justify-content-end gap-2">
+                          <div className="d-flex justify-content-end gap-3">
                             <Link to={`/edit-package`} state={{ id: pkg._id }}>
                               <Button
                                 color="light"

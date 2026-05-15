@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react"
+import Select from "react-select"
+import Switch from "react-switch"
 import {
   Container,
   Row,
@@ -33,7 +35,7 @@ const CreatePackage = () => {
   const [description, setDescription] = useState("")
   const [validFrom, setValidFrom] = useState(new Date())
   const [validUntil, setValidUntil] = useState(new Date())
-  const [applicableFor, setApplicableFor] = useState(["POS", "Appointments", "Walk-ins"])
+  const [applicableFor, setApplicableFor] = useState([])
   const [status, setStatus] = useState("active")
   const [selectedServices, setSelectedServices] = useState([])
 
@@ -62,12 +64,17 @@ const CreatePackage = () => {
 
   const handleApplicableToggle = (item) => {
     setApplicableFor(prev => {
-      if (prev.includes(item)) {
+      const isIncluded = prev.includes(item)
+      if (isIncluded) {
         return prev.filter(i => i !== item)
       } else {
         return [...prev, item]
       }
     })
+  }
+
+  const toggleStatus = () => {
+    setStatus(prev => prev === "active" ? "inactive" : "active")
   }
 
   const handleServiceToggle = (id) => {
@@ -264,14 +271,21 @@ const CreatePackage = () => {
                           <h6 className="fw-bold mb-1">Active Status</h6>
                           <p className="text-muted small mb-0">Enable to make this package available</p>
                         </div>
-                        <div className="form-check form-switch form-switch-md">
-                          <Input
-                            type="switch"
-                            id="activeStatusSwitch"
+                        <div className="d-flex align-items-center">
+                          <Switch
                             checked={status === "active"}
-                            onChange={(e) => setStatus(e.target.checked ? "active" : "inactive")}
-                            className="custom-switch-purple cursor-pointer"
-                            style={{ cursor: 'pointer' }}
+                            onChange={(checked) => setStatus(checked ? "active" : "inactive")}
+                            onColor="#727cf5"
+                            onHandleColor="#fff"
+                            handleDiameter={18}
+                            uncheckedIcon={false}
+                            checkedIcon={false}
+                            boxShadow="0px 1px 5px rgba(0, 0, 0, 0.6)"
+                            activeBoxShadow="0px 0px 1px 10px rgba(0, 0, 0, 0.2)"
+                            height={22}
+                            width={44}
+                            className="react-switch"
+                            id="activeStatusSwitch"
                           />
                         </div>
                       </div>
@@ -286,33 +300,58 @@ const CreatePackage = () => {
                   <h5 className="fw-bold mb-1">Select Services</h5>
                   <p className="text-muted small mb-4">Choose services to include in this package</p>
 
-                  <div className="search-box bg-light rounded-pill border-0 px-4 py-2 d-flex align-items-center mb-4">
-                    <i className="bx bx-search text-muted me-2"></i>
-                    <Input
-                      type="text"
-                      placeholder="Search services..."
-                      className="border-0 bg-transparent p-0 form-control"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                  <div className="mb-4">
+                    <Select
+                      isMulti
+                      options={allServices.map(s => ({
+                        value: s._id,
+                        label: `${s.serviceName} (₹${s.price})`,
+                        price: s.price,
+                        image: s.image,
+                        category: s.categoryName
+                      }))}
+                      className="basic-multi-select"
+                      classNamePrefix="select"
+                      placeholder="Select services..."
+                      value={allServices
+                        .filter(s => selectedServices.includes(s._id))
+                        .map(s => ({
+                          value: s._id,
+                          label: `${s.serviceName} (₹${s.price})`
+                        }))}
+                      onChange={(selectedOptions) => {
+                        setSelectedServices(selectedOptions ? selectedOptions.map(o => o.value) : [])
+                      }}
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          borderRadius: '12px',
+                          padding: '2px',
+                          border: '1px solid #ebedf2',
+                          boxShadow: 'none',
+                          '&:hover': {
+                            border: '1px solid #74788d'
+                          }
+                        })
+                      }}
                     />
                   </div>
 
                   <div className="services-list overflow-auto" style={{ maxHeight: '400px' }}>
                     {fetchingServices ? (
                       <div className="text-center py-4"><Spinner color="primary" /></div>
-                    ) : filteredServices.length > 0 ? (
-                      filteredServices.map(service => (
+                    ) : selectedServicesData.length > 0 ? (
+                      selectedServicesData.map(service => (
                         <div key={service._id} className="d-flex align-items-center justify-content-between p-3 border-bottom service-item-hover">
                           <div className="d-flex align-items-center gap-3">
                             <Input
                               type="checkbox"
                               id={`service-${service._id}`}
-                              checked={selectedServices.includes(service._id)}
+                              checked={true}
                               onChange={() => handleServiceToggle(service._id)}
                               className="custom-check-purple cursor-pointer"
-                              style={{ cursor: 'pointer' }}
                             />
-                            <Label htmlFor={`service-${service._id}`} className="m-0 cursor-pointer d-flex align-items-center gap-3" style={{ cursor: 'pointer' }}>
+                            <Label htmlFor={`service-${service._id}`} className="m-0 cursor-pointer d-flex align-items-center gap-3">
                               <div className="service-img rounded-3 bg-light overflow-hidden" style={{ width: 40, height: 40 }}>
                                 {service.image ? (
                                   <img src={URLS.ImageUrl + service.image} alt="" className="w-100 h-100 object-fit-cover" />
@@ -336,7 +375,7 @@ const CreatePackage = () => {
                       ))
                     ) : (
                       <div className="text-center py-5 opacity-50">
-                        <p className="text-muted small">No services found.</p>
+                        <p className="text-muted small">No services selected. Use the dropdown above to add services.</p>
                       </div>
                     )}
                   </div>
