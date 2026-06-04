@@ -36,6 +36,8 @@ const Customers = () => {
   const [currentCustomer, setCurrentCustomer] = useState(null)
   const [deleteModal, setDeleteModal] = useState(false)
   const [customerToDelete, setCustomerToDelete] = useState(null)
+  const [activeCount, setActiveCount] = useState(0)
+  const [archivedCount, setArchivedCount] = useState(0)
 
   // Form State
   const [formData, setFormData] = useState({
@@ -80,7 +82,11 @@ const Customers = () => {
   const fetchCustomers = useCallback(async () => {
     setLoading(true)
     try {
-      const url = `${URLS.GetAllCustomers}?page=${currentPage}&limit=${pageSize}${searchTerm ? `&search=${searchTerm}` : ""}`
+      // const url = `${URLS.GetAllCustomers}?page=${currentPage}&limit=${pageSize}&isDeleted=${activeTab === "archived"}${searchTerm ? `&search=${searchTerm}` : ""}`
+      const url =
+      activeTab === "archived"
+        ? `${URLS.GetArchivedCustomers}?search=${searchTerm || ""}&page=${currentPage}&limit=${pageSize}`
+        : `${URLS.GetAllCustomers}?page=${currentPage}&limit=${pageSize}${searchTerm ? `&search=${searchTerm}` : ""}`;
       const response = await post(url, {})
       if (response.success) {
         setCustomers(response.data || [])
@@ -94,11 +100,31 @@ const Customers = () => {
     } finally {
       setLoading(false)
     }
-  }, [currentPage, pageSize, searchTerm])
+  }, [currentPage, pageSize, searchTerm, activeTab])
+
+  const fetchCounts = async () => {
+    try {
+      const activeRes = await post(
+        `${URLS.GetAllCustomers}?page=1&limit=1`,
+        {}
+      );
+
+      const archivedRes = await post(
+        `${URLS.GetArchivedCustomers}?page=1&limit=1&search=`,
+        {}
+      );
+
+      setActiveCount(activeRes.totalRecords || 0);
+      setArchivedCount(archivedRes.totalRecords || 0);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
-    fetchCustomers()
-  }, [fetchCustomers])
+    fetchCustomers();
+    fetchCounts();
+  }, [fetchCustomers]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value)
@@ -124,6 +150,7 @@ const Customers = () => {
         toast.success(response.message || `Customer ${isEdit ? "updated" : "added"} successfully`)
         toggleAddModal()
         fetchCustomers()
+        fetchCounts()
       } else {
         toast.error(response.message || "Operation failed")
       }
@@ -152,14 +179,36 @@ const Customers = () => {
     setDeleteModal(true)
   }
 
+  // const confirmDelete = async () => {
+  //   try {
+  //     const response = await del(URLS.DeleteCustomers + customerToDelete._id)
+  //     if (response.success) {
+  //       toast.success(response.message || "Customer deleted successfully")
+  //       fetchCustomers()
+  //     } else {
+  //       toast.error(response.message || "Failed to delete customer")
+  //     }
+  //   } catch (error) {
+  //     toast.error("An error occurred")
+  //   } finally {
+  //     setDeleteModal(false)
+  //     setCustomerToDelete(null)
+  //   }
+  // }
+
   const confirmDelete = async () => {
     try {
-      const response = await del(URLS.DeleteCustomers + customerToDelete._id)
+      const response = await del(
+        URLS.DeleteCustomers + customerToDelete._id,
+        { isDeleted: true }
+      )
+
       if (response.success) {
-        toast.success(response.message || "Customer deleted successfully")
-        fetchCustomers()
+        toast.success("Customer moved to archive")
+        fetchCustomers();
+        fetchCounts();
       } else {
-        toast.error(response.message || "Failed to delete customer")
+        toast.error(response.message || "Failed to archive customer")
       }
     } catch (error) {
       toast.error("An error occurred")
@@ -168,6 +217,29 @@ const Customers = () => {
       setCustomerToDelete(null)
     }
   }
+
+  const handlePermanentDelete = async (customerId) => {
+    if (!window.confirm("This customer will be permanently deleted. Continue?")) {
+      return;
+    }
+
+    try {
+      const response = await del(
+        URLS.DeleteCustomers + customerId
+      );
+
+      if (response.success) {
+        toast.success("Customer deleted permanently");
+        fetchCustomers();
+        fetchCounts();
+      } else {
+        toast.error(response.message || "Failed to delete customer");
+      }
+    } catch (error) {
+      toast.error("Failed to delete customer");
+    }
+  };
+
 
   return (
     <React.Fragment>
@@ -198,18 +270,20 @@ const Customers = () => {
                 "bg-white shadow-sm text-dark": activeTab === "active",
                 "bg-transparent text-muted": activeTab !== "active",
               })}
-              onClick={() => setActiveTab("active")}
+              onClick={() => { setActiveTab("active"); setCurrentPage(1); }}
             >
-              <i className="bx bx-user me-1"></i> Active ({activeTab === 'active' ? totalRecords : 0})
+              <i className="bx bx-user me-1"></i> Active ({activeCount})
+              {/* ({activeTab === 'active' ? activeCount : totalRecords}) */}
             </Button>
             <Button
               className={classNames("rounded-pill px-4 py-1 border-0 small fw-bold", {
                 "bg-white shadow-sm text-dark": activeTab === "archived",
                 "bg-transparent text-muted": activeTab !== "archived",
               })}
-              onClick={() => setActiveTab("archived")}
+              onClick={() => { setActiveTab("archived"); setCurrentPage(1); }}
             >
-              <i className="bx bx-archive me-1"></i> Archived (0)
+              <i className="bx bx-archive me-1"></i> Archived ({archivedCount})
+              {/* ({activeTab === 'archived' && archivedCount}) */}
             </Button>
           </div>
 
@@ -277,7 +351,7 @@ const Customers = () => {
                           <td>0</td>
                           <td className="fw-bold">₹0</td>
                           <td className="text-center">
-                            <div className="d-flex justify-content-center gap-3">
+                            {/* <div className="d-flex justify-content-center gap-3">
                               <button
                                 type="button"
                                 className="border-0 bg-transparent p-0"
@@ -292,6 +366,118 @@ const Customers = () => {
                               >
                                 <i className="bx bx-trash text-danger fs-5"></i>
                               </button>
+                            </div> */}
+                            {/* <div className="d-flex justify-content-center gap-3">
+                              {activeTab === "active" ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="border-0 bg-transparent p-0"
+                                    onClick={() => handleEdit(customer)}
+                                  >
+                                    <i className="bx bx-edit-alt text-primary fs-5"></i>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    className="border-0 bg-transparent p-0"
+                                    onClick={() => handleDelete(customer)}
+                                  >
+                                    <i className="bx bx-trash text-danger fs-5"></i>
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="border-0 bg-transparent p-0"
+                                  onClick={async () => {
+                                    try {
+                                      const response = await put(
+                                        URLS.UpdateCustomers + customer._id,
+                                        { isDeleted: false }
+                                      )
+
+                                      if (response.success) {
+                                        toast.success("Customer restored successfully")
+                                        fetchCustomers()
+                                      } else {
+                                        toast.error(response.message)
+                                      }
+                                    } catch (error) {
+                                      toast.error("Failed to restore customer")
+                                    }
+                                  }}
+                                >
+                                  <i className="bx bx-reset text-success fs-5"></i>
+                                </button>
+                              )}
+                            </div> */}
+
+                            <div className="d-flex justify-content-center gap-3">
+
+                              {activeTab === "active" ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="border-0 bg-transparent p-0"
+                                    title="Edit Customer"
+                                    onClick={() => handleEdit(customer)}
+                                  >
+                                    <i className="bx bx-edit-alt text-primary fs-5"></i>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    className="border-0 bg-transparent p-0"
+                                    title="Move To Archive"
+                                    onClick={() => handleDelete(customer)}
+                                  >
+                                    <i className="bx bx-trash text-danger fs-5"></i>
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  {/* Restore */}
+
+                                  {/* <button
+                                    type="button"
+                                    className="border-0 bg-transparent p-0"
+                                    title="Restore Customer"
+                                    onClick={async () => {
+                                      try {
+                                        const response = await put(
+                                          URLS.UpdateCustomers + customer._id,
+                                          { isDeleted: false }
+                                        );
+
+                                        if (response.success) {
+                                          toast.success("Customer restored successfully");
+                                          fetchCustomers();
+                                          fetchCounts();
+                                        } else {
+                                          toast.error(response.message);
+                                        }
+                                      } catch (error) {
+                                        toast.error("Failed to restore customer");
+                                      }
+                                    }}
+                                  >
+                                    <i className="bx bx-reset text-success fs-5"></i>
+                                  </button> */}
+
+                                  {/* Permanent Delete */}
+
+                                  <button
+                                    type="button"
+                                    className="border-0 bg-transparent p-0"
+                                    title="Delete Permanently"
+                                    onClick={() => handlePermanentDelete(customer._id)}
+                                  >
+                                    <i className="bx bx-trash-alt text-danger fs-5"></i>
+                                  </button>
+                                </>
+                              )}
+
                             </div>
                           </td>
                         </tr>
@@ -394,6 +580,7 @@ const Customers = () => {
                         className="rounded-4 bg-light border-0 px-3 py-2 w-100"
                         value={formData.phone}
                         onChange={handleInputChange}
+                        maxlength={10}
                         required
                       />
                     </FormGroup>
@@ -456,7 +643,6 @@ const Customers = () => {
                         <option value="online">Online</option>
                         <option value="social_media">Social Media</option>
                         <option value="referral">Referral</option>
-                        <option value="walk-in">Walk-in</option>
                       </Input>
                     </FormGroup>
                   </Col>
@@ -536,8 +722,8 @@ const Customers = () => {
                 <div className="icon-circle bg-danger bg-opacity-10 text-danger mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style={{ width: '60px', height: '60px' }}>
                   <i className="bx bx-trash fs-2"></i>
                 </div>
-                <h4 className="fw-bold mb-1">Are you sure?</h4>
-                <p className="text-muted small mb-0">You won't be able to revert this!</p>
+                <h4 className="fw-bold mb-1">Move Customer To Archive?</h4>
+                <p className="text-muted small mb-0">The customer will be moved to Archived Customers and can be restored later.</p>
               </div>
             </ModalHeader>
             <ModalFooter className="border-0 px-5 pb-5 pt-4 gap-3 justify-content-center">
@@ -545,7 +731,7 @@ const Customers = () => {
                 Cancel
               </Button>
               <Button color="danger" className="rounded-pill px-4 py-2 fw-bold shadow-sm" onClick={confirmDelete}>
-                Yes, delete it!
+                Move To Archive
               </Button>
             </ModalFooter>
           </div>

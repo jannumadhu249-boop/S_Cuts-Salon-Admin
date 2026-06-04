@@ -23,7 +23,6 @@ const ProfileMenu = props => {
   const authUser = localStorage.getItem("authUser");
   const obj = authUser ? JSON.parse(authUser) : null;
   const userObj = user?.user || obj?.user;
-
   const username = userObj?.name || "Admin";
   const profilePic = userObj?.image
     ? (URLS.ImageUrl + userObj.image.replace(/\\/g, '/'))
@@ -83,3 +82,5 @@ ProfileMenu.propTypes = {
 };
 
 export default withRouter(ProfileMenu);
+
+

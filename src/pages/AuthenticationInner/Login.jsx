@@ -197,13 +197,13 @@ const Login = () => {
                 </CardBody>
               </Card>
               <div className="mt-5 text-center">
-                <p>
+                {/* <p>
                   Don&apos;t have an account ?{" "} <Link
                     to="pages-register"
                     className="fw-medium text-primary"
                   > Signup now{" "}
                   </Link>{" "}
-                </p>
+                </p> */}
                 <p>
                   © {new Date().getFullYear()} Skote. Crafted with{" "}
                   <i className="mdi mdi-heart text-danger" /> by Themesbrand

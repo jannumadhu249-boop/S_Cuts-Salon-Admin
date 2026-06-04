@@ -501,18 +501,25 @@ const SidebarContent = props => {
                 </li>
               </ul> */}
             </li>
-            <li>
+            {/* <li>
               <Link to="/memberships" className="">
                 <i className="bx bx-user-check"></i>
                 <span>{props.t("Memberships")}</span>
               </Link>
-            </li>
+            </li> */}
 
             <li className="menu-title">{props.t("Staff & Managements")}</li>
             <li>
               <Link to="/staff" className="">
                 <i className="bx bx-group" />
                 <span>{props.t("Staff Management")}</span>
+              </Link>
+            </li>
+
+            <li>
+              <Link to="/roles-permissions" className="">
+                <i className="bx bx-key" />
+                <span>{props.t("Roles & Permissions")}</span>
               </Link>
             </li>
 

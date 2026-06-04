@@ -24,10 +24,8 @@ import {
 import { post, put, del } from "../../helpers/api_helper"
 import { URLS } from "../../url"
 import { toast } from "react-toastify"
-import classNames from "classnames"
-
-// Styles
 import "./products.scss"
+
 
 const Products = () => {
   const [products, setProducts] = useState([])

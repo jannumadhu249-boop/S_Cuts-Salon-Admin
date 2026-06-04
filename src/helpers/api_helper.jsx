@@ -5,8 +5,13 @@ import accessToken from "./jwt-token-access/accessToken";
 const getAuthUser = () => {
   const authUser = localStorage.getItem("authUser");
   if (authUser) {
-    const { token } = JSON.parse(authUser);
-    return `Bearer ${token}`;
+    try {
+      const { token } = JSON.parse(authUser);
+      return `Bearer ${token}`;
+    } catch (error) {
+      console.error("Error parsing authUser from localStorage:", error);
+      return null;
+    }
   }
   return null;
 };
@@ -28,29 +33,57 @@ axiosApi.interceptors.request.use((config) => {
 
 axiosApi.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(error)
+  (error) => {
+    // Handle 401 Unauthorized errors
+    if (error.response && error.response.status === 401) {
+      // Clear auth data
+      localStorage.removeItem("authUser");
+      
+      // Redirect to login page
+      window.location.href = "/login";
+      
+      return Promise.reject({
+        ...error,
+        message: "Session expired. Please login again."
+      });
+    }
+    
+    return Promise.reject(error);
+  }
 );
 
 export async function get(url, config = {}) {
   return await axiosApi
     .get(url, { ...config })
-    .then((response) => response.data);
+    .then((response) => response.data)
+    .catch((error) => {
+      throw error;
+    });
 }
 
 export async function post(url, data, config = {}) {
   return axiosApi
     .post(url, data, { ...config })
-    .then((response) => response.data);
+    .then((response) => response.data)
+    .catch((error) => {
+      throw error;
+    });
 }
 
 export async function put(url, data, config = {}) {
   return axiosApi
     .put(url, data, { ...config })
-    .then((response) => response.data);
+    .then((response) => response.data)
+    .catch((error) => {
+      throw error;
+    });
 }
 
 export async function del(url, config = {}) {
   return await axiosApi
     .delete(url, { ...config })
-    .then((response) => response.data);
+    .then((response) => response.data)
+    .catch((error) => {
+      throw error;
+    });
 }

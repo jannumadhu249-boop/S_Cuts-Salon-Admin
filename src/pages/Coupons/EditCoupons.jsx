@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   Container,
   Row,
@@ -12,17 +12,21 @@ import {
   Alert,
   Spinner,
 } from "reactstrap"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useLocation } from "react-router-dom"
 import Flatpickr from "react-flatpickr"
-import { post } from "../../helpers/api_helper"
+import { post, put } from "../../helpers/api_helper"
 import { URLS } from "../../url"
 
 // Styles
 import "./coupons.scss"
 
-const CreateCoupons = () => {
+const UpdateCoupons = () => {
   const navigate = useNavigate()
-  
+  const location = useLocation()
+
+  const couponId = location.state?.id || ""
+  const initialCoupon = location.state?.coupon
+
   const [formData, setFormData] = useState({
     couponCode: "",
     isActive: true,
@@ -43,12 +47,60 @@ const CreateCoupons = () => {
   const [success, setSuccess] = useState(false)
   const [validationErrors, setValidationErrors] = useState({})
 
+  // Load and fetch coupon details
+  useEffect(() => {
+    if (initialCoupon) {
+      setFormData({
+        couponCode: initialCoupon.couponCode || "",
+        isActive: initialCoupon.isActive !== undefined ? initialCoupon.isActive : true,
+        discountType: initialCoupon.discountType || "Percentage",
+        discountValue: initialCoupon.discountValue || "",
+        minimumBillAmount: initialCoupon.minimumBillAmount || "",
+        maxDiscountCap: initialCoupon.maxDiscountCap || "",
+        validFrom: initialCoupon.validFrom ? new Date(initialCoupon.validFrom) : null,
+        validUntil: initialCoupon.validUntil ? new Date(initialCoupon.validUntil) : null,
+        totalUsageLimit: initialCoupon.totalUsageLimit || "",
+        perCustomerLimit: initialCoupon.perCustomerLimit || "",
+        applicableFor: initialCoupon.applicableFor || [],
+        branchOnly: initialCoupon.branchOnly !== undefined ? initialCoupon.branchOnly : true,
+      })
+    }
+
+    if (couponId) {
+      const getFreshData = async () => {
+        try {
+          const response = await post(URLS.GetByIdCoupons, { couponId })
+          if (response.success && response.data) {
+            const data = response.data
+            setFormData({
+              couponCode: data.couponCode || "",
+              isActive: data.isActive !== undefined ? data.isActive : true,
+              discountType: data.discountType || "Percentage",
+              discountValue: data.discountValue !== undefined ? data.discountValue : "",
+              minimumBillAmount: data.minimumBillAmount !== undefined ? data.minimumBillAmount : "",
+              maxDiscountCap: data.maxDiscountCap !== undefined ? data.maxDiscountCap : "",
+              validFrom: data.validFrom ? new Date(data.validFrom) : null,
+              validUntil: data.validUntil ? new Date(data.validUntil) : null,
+              totalUsageLimit: data.totalUsageLimit !== undefined ? data.totalUsageLimit : "",
+              perCustomerLimit: data.perCustomerLimit !== undefined ? data.perCustomerLimit : "",
+              applicableFor: data.applicableFor || [],
+              branchOnly: data.branchOnly !== undefined ? data.branchOnly : true,
+            })
+          }
+        } catch (err) {
+          console.error("Error fetching fresh coupon data:", err)
+        }
+      }
+      getFreshData()
+    }
+  }, [couponId, initialCoupon])
+
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value, type } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: type === "number" ? (value ? Number(value) : "") : value
+      [name]: type === "number" ? (value !== "" ? Number(value) : "") : value
     }))
     // Clear validation error for this field
     if (validationErrors[name]) {
@@ -135,7 +187,8 @@ const CreateCoupons = () => {
         applicableFor: formData.applicableFor,
       }
 
-      const response = await post(URLS.AddCoupons, payload)
+      // PUT Update request
+      const response = await put(URLS.UpdateCoupons + couponId, payload)
 
       if (response.success) {
         setSuccess(true)
@@ -145,11 +198,11 @@ const CreateCoupons = () => {
           navigate("/coupons")
         }, 2000)
       } else {
-        throw new Error(response.message || "Failed to create coupon")
+        throw new Error(response.message || "Failed to update coupon")
       }
     } catch (err) {
-      setError(err.message || "Failed to create coupon. Please try again.")
-      console.error("Error creating coupon:", err)
+      setError(err.message || "Failed to update coupon. Please try again.")
+      console.error("Error updating coupon:", err)
     } finally {
       setLoading(false)
     }
@@ -157,7 +210,7 @@ const CreateCoupons = () => {
 
   return (
     <React.Fragment>
-      <div className="page-content create-coupon-page dashboard-sans">
+      <div className="page-content update-coupon-page dashboard-sans">
         <Container fluid>
           {/* Header */}
           <div className="d-flex align-items-center gap-3 mb-4 mt-2">
@@ -165,8 +218,8 @@ const CreateCoupons = () => {
               <i className="bx bx-left-arrow-alt fs-2"></i>
             </Link>
             <div className="text-center">
-              <h3 className="fw-bold mb-0 text-dark">Create Coupon</h3>
-              <p className="text-muted mb-0">Create a new discount coupon</p>
+              <h3 className="fw-bold mb-0 text-dark">Update Coupon</h3>
+              <p className="text-muted mb-0">Update an existing discount coupon</p>
             </div>
           </div>
 
@@ -178,7 +231,7 @@ const CreateCoupons = () => {
                   {success && (
                     <Alert color="success" className="mb-4 rounded-4">
                       <i className="bx bx-check-circle me-2"></i>
-                      Coupon created successfully! Redirecting...
+                      Coupon updated successfully! Redirecting...
                     </Alert>
                   )}
 
@@ -415,10 +468,10 @@ const CreateCoupons = () => {
                       >
                         {loading ? (
                           <>
-                            <Spinner size="sm" className="me-2" /> Creating...
+                            <Spinner size="sm" className="me-2" /> Updating...
                           </>
                         ) : (
-                          "Create Coupon"
+                          "Update Coupon"
                         )}
                       </Button>
                     </div>
@@ -433,4 +486,4 @@ const CreateCoupons = () => {
   )
 }
 
-export default CreateCoupons
+export default UpdateCoupons

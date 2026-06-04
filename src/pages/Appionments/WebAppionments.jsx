@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import {
   Container,
   Row,
@@ -7,45 +7,185 @@ import {
   CardBody,
   Button,
   Input,
+  Spinner,
+  Table,
+  Badge,
+  Pagination,
+  PaginationItem,
+  PaginationLink,
 } from "reactstrap"
 import Flatpickr from "react-flatpickr"
 import classNames from "classnames"
-import { Link } from "react-router-dom"
+import { URLS } from "../../url"
+import { post } from "../../helpers/api_helper"
 
 // Styles
 import "./appointments.scss"
 
+// Helper function
+const formatDate = (date) => {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
 const WebAppointments = () => {
   const [timeFilter, setTimeFilter] = useState("today")
+  const [dateRange, setDateRange] = useState([new Date(), new Date()])
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("All Statuses")
+
+  // Stats
+  const [stats, setStats] = useState({ 
+    todaysAppointments: 0, 
+    upcoming: 0, 
+    completed: 0, 
+    totalProducts: 0 
+  })
+  const [loadingStats, setLoadingStats] = useState(false)
+
+  // Appointments
+  const [appointments, setAppointments] = useState([])
+  const [pagination, setPagination] = useState({ 
+    total: 0, 
+    currentPage: 1, 
+    totalPages: 1, 
+    limit: 10, 
+    hasNextPage: false, 
+    hasPreviousPage: false 
+  })
+  const [loading, setLoading] = useState(false)
+
+  const statusOptions = ["All Statuses", "Confirmed", "Pending", "Cancelled", "Upcoming", "Completed"]
+
+  // Fetch Stats
+  const fetchStats = async () => {
+    setLoadingStats(true)
+    try {
+      const json = await post(URLS.StatsAppionments, {})
+      if (json.success) {
+        setStats(json.data)
+      }
+    } catch (err) {
+      console.error("Stats error:", err)
+    } finally {
+      setLoadingStats(false)
+    }
+  }
+
+  // Fetch Appointments
+  const fetchAppointments = useCallback(async () => {
+    setLoading(true)
+    try {
+      let fromDate, toDate
+      if (dateRange?.length === 2) {
+        fromDate = formatDate(dateRange[0])
+        toDate = formatDate(dateRange[1])
+      } else {
+        const today = new Date()
+        fromDate = toDate = formatDate(today)
+      }
+
+      const body = {
+        fromDate,
+        toDate,
+        fromTime: "12:00 AM",
+        toTime: "11:59 PM",
+        bookingSource: "WEB",
+        status: statusFilter === "All Statuses" ? "" : statusFilter,
+      }
+
+      const params = new URLSearchParams({
+        search: search || "null",
+        page: pagination.currentPage,
+        limit: pagination.limit,
+      })
+
+      const json = await post(`${URLS.GetAppionments}?${params.toString()}`, body)
+      if (json.success) {
+        setAppointments(json.data || [])
+        setPagination(json.pagination)
+      }
+    } catch (err) {
+      console.error("Fetch appointments error:", err)
+    } finally {
+      setLoading(false)
+    }
+  }, [dateRange, search, pagination.currentPage, pagination.limit, statusFilter])
+
+  // Initial load
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  useEffect(() => {
+    fetchAppointments()
+  }, [fetchAppointments])
+
+  // Pagination
+  const goToPage = (page) => {
+    if (page >= 1 && page <= pagination.totalPages) {
+      setPagination(prev => ({ ...prev, currentPage: page }))
+    }
+  }
+
+  // Handle time filter selection
+  const handleTimeFilterClick = (filter) => {
+    setTimeFilter(filter)
+    const today = new Date()
+    let fromDate, toDate
+
+    switch (filter) {
+      case "today":
+        fromDate = toDate = new Date()
+        break
+      case "next7days":
+        fromDate = new Date()
+        toDate = new Date()
+        toDate.setDate(today.getDate() + 7)
+        break
+      case "last7days":
+        fromDate = new Date()
+        fromDate.setDate(today.getDate() - 7)
+        toDate = new Date()
+        break
+      case "last30days":
+        fromDate = new Date()
+        fromDate.setDate(today.getDate() - 30)
+        toDate = new Date()
+        break
+      default:
+        fromDate = toDate = new Date()
+    }
+
+    setDateRange([fromDate, toDate])
+  }
 
   const summaryCards = [
     {
       title: "Today's Appointments",
-      value: "0",
+      value: stats.todaysAppointments,
       icon: "bx-calendar",
       class: "today",
     },
     {
       title: "Upcoming",
-      value: "0",
+      value: stats.upcoming,
       icon: "bx-time-five",
       class: "upcoming",
     },
     {
       title: "Completed",
-      value: "0",
+      value: stats.completed,
       icon: "bx-check-circle",
       class: "completed",
     },
     {
-      title: "No Shows",
-      value: "0",
-      icon: "bx-user-x",
-      class: "noshows",
+      title: "Products",
+      value: stats.totalProducts,
+      icon: "bx-package",
+      class: "products",
     },
   ]
-
-  const statusOptions = ["All Statuses", "Confirmed", "Pending", "Cancelled"]
 
   return (
     <React.Fragment>
@@ -67,7 +207,9 @@ const WebAppointments = () => {
                   <CardBody className="p-4 d-flex justify-content-between align-items-center">
                     <div>
                       <p className="mb-1 text-white opacity-75 fw-medium">{card.title}</p>
-                      <h2 className="mb-0 text-white fw-bold">{card.value}</h2>
+                      <h2 className="mb-0 text-white fw-bold">
+                        {loadingStats ? <Spinner size="sm" color="light" /> : card.value}
+                      </h2>
                     </div>
                     <div className="icon-wrapper">
                       <i className={classNames("bx", card.icon)}></i>
@@ -90,7 +232,7 @@ const WebAppointments = () => {
                       "bg-light text-dark fw-medium": timeFilter === normalized,
                       "bg-transparent text-muted": timeFilter !== normalized,
                     })}
-                    onClick={() => setTimeFilter(normalized)}
+                    onClick={() => handleTimeFilterClick(normalized)}
                   >
                     {item}
                   </Button>
@@ -104,8 +246,10 @@ const WebAppointments = () => {
                 options={{
                   mode: "range",
                   dateFormat: "M j, Y",
-                  defaultDate: [new Date(), new Date()],
+                  defaultDate: dateRange,
                 }}
+                value={dateRange}
+                onChange={(dates) => setDateRange(dates)}
               />
             </div>
           </div>
@@ -119,12 +263,19 @@ const WebAppointments = () => {
                   type="text"
                   placeholder="Search by name or phone..."
                   className="border-0 bg-transparent p-0 form-control"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
             </Col>
             <Col md={2}>
               <div className="status-filter bg-white rounded-pill shadow-sm border p-1 px-3 d-flex align-items-center">
-                <Input type="select" className="border-0 bg-transparent p-0 form-control form-select">
+                <Input 
+                  type="select" 
+                  className="border-0 bg-transparent p-0 form-control form-select"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
                   {statusOptions.map(opt => (
                     <option key={opt}>{opt}</option>
                   ))}
@@ -135,17 +286,107 @@ const WebAppointments = () => {
 
           {/* Main List Card */}
           <Card className="border-0 rounded-4 shadow-sm main-content-card">
-            <CardBody className="d-flex flex-column align-items-center justify-content-center py-5 my-5">
-              <div className="empty-state-icon mb-4">
-                <div className="icon-circle bg-light d-flex align-items-center justify-content-center">
-                  <i className="bx bx-calendar-x text-muted display-4"></i>
+            {loading ? (
+              <CardBody className="d-flex flex-column align-items-center justify-content-center py-5 my-5">
+                <Spinner color="primary" />
+                <p className="mt-3">Loading web appointments...</p>
+              </CardBody>
+            ) : appointments.length === 0 ? (
+              <CardBody className="d-flex flex-column align-items-center justify-content-center py-5 my-5">
+                <div className="empty-state-icon mb-4">
+                  <div className="icon-circle bg-light d-flex align-items-center justify-content-center">
+                    <i className="bx bx-calendar-x text-muted display-4"></i>
+                  </div>
                 </div>
-              </div>
-              <h4 className="fw-bold text-dark mb-2">No Web Appointments Found</h4>
-              <p className="text-muted text-center mb-4" style={{ maxWidth: "400px" }}>
-                Appointments booked from your online portal will appear here.
-              </p>
-            </CardBody>
+                <h4 className="fw-bold text-dark mb-2">No Web Appointments Found</h4>
+                <p className="text-muted text-center mb-4" style={{ maxWidth: "400px" }}>
+                  Appointments booked from your online portal will appear here.
+                </p>
+              </CardBody>
+            ) : (
+              <CardBody className="p-0">
+                <div className="table-responsive">
+                  <Table className="mb-0 align-middle" hover>
+                    <thead className="bg-light">
+                      <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Service</th>
+                        <th>Staff</th>
+                        <th>Package</th>
+                        <th>Status</th>
+                        <th>Source</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {appointments.map(apt => (
+                        <tr key={apt._id}>
+                          <td className="text-muted small">{apt.appointmentId}</td>
+                          <td>
+                            <div className="fw-bold">{apt.customerName}</div>
+                            <small className="text-muted">{apt.customerPhone}</small>
+                          </td>
+                          <td>{apt.appointmentDate}</td>
+                          <td>{apt.appointmentTime}</td>
+                          <td>{apt.serviceName || "—"}</td>
+                          <td>{apt.staffName || "—"}</td>
+                          <td>{apt.packageName || "—"}</td>
+                          <td>
+                            <Badge 
+                              color={
+                                apt.status === "Upcoming" ? "primary" : 
+                                apt.status === "Completed" ? "success" : 
+                                apt.status === "Confirmed" ? "info" :
+                                apt.status === "Cancelled" ? "danger" : 
+                                "warning"
+                              } 
+                              className="rounded-pill px-3 py-1"
+                            >
+                              {apt.status}
+                            </Badge>
+                          </td>
+                          <td>
+                            <Badge color="success" className="rounded-pill px-3 py-1">
+                              <i className="bx bx-globe me-1"></i>
+                              {apt.bookingSource}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
+
+                {/* Pagination */}
+                {pagination.totalPages > 1 && (
+                  <div className="d-flex justify-content-center p-3">
+                    <Pagination>
+                      <PaginationItem disabled={!pagination.hasPreviousPage}>
+                        <PaginationLink 
+                          previous 
+                          onClick={() => goToPage(pagination.currentPage - 1)} 
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(page => (
+                        <PaginationItem key={page} active={page === pagination.currentPage}>
+                          <PaginationLink onClick={() => goToPage(page)}>
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem disabled={!pagination.hasNextPage}>
+                        <PaginationLink 
+                          next 
+                          onClick={() => goToPage(pagination.currentPage + 1)} 
+                        />
+                      </PaginationItem>
+                    </Pagination>
+                  </div>
+                )}
+              </CardBody>
+            )}
           </Card>
         </Container>
       </div>

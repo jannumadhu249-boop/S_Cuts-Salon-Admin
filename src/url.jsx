@@ -58,5 +58,65 @@ export const URLS = {
     UpdateCustomers: base_url + "v1/ScutsApi/admin/customers/updateCustomer/",
     DeleteCustomers: base_url + "v1/ScutsApi/admin/customers/deleteCustomer/",
     GetByIdCustomers: base_url + "v1/ScutsApi/admin/customers/getCustomerById",
-    
+    GetArchivedCustomers: base_url + "v1/ScutsApi/admin/customers/getArchivedCustomers",
+
+    //Coupons
+    GetAllCoupons: base_url + "v1/ScutsApi/admin/coupon/getAllCoupons",
+    SearchCoupons: base_url + "v1/ScutsApi/admin/coupon/getAllCoupons?searchQuery=",
+    PaginationCoupons: base_url + "v1/ScutsApi/admin/coupon/getAllCoupons?page=",
+    AddCoupons: base_url + "v1/ScutsApi/admin/coupon/createCoupon",
+    UpdateCoupons: base_url + "v1/ScutsApi/admin/coupon/updateCoupon/",
+    GetByIdCoupons: base_url +"v1/ScutsApi/admin/coupon/getSingleCoupon",
+    DeleteCoupons: base_url + "v1/ScutsApi/admin/coupon/deleteCoupon/",
+
+    //POS
+    CreatePos: base_url + "v1/ScutsApi/admin/pos/createPOS",
+    SearchPos: base_url + "v1/ScutsApi/admin/pos/searchandcreateCustomers",
+    CreateCustomer: base_url + "v1/ScutsApi/admin/pos/searchandcreateCustomers",
+    SearchPosItems: base_url + "v1/ScutsApi/admin/pos/searchPOSItems",
+    GetPosBill: base_url + "v1/ScutsApi/admin/pos/getAllPOSBills",
+    SearchPosBill: base_url + "v1/ScutsApi/admin/pos/getAllPOSBills?search=",
+    PaginationPosBill: base_url + "v1/ScutsApi/admin/pos/getAllPOSBills?page=",
+    GetPosById: base_url + "v1/ScutsApi/admin/pos/getPosById",
+    UpdatePos: base_url + "v1/ScutsApi/admin/pos/updatePos/",
+    DeletePos: base_url + "v1/ScutsApi/admin/pos/deletePOS/",
+
+    //Dashboard
+    GetDashboard: base_url + "v1/ScutsApi/admin/dashboard/getDashboard",
+
+    //Invoices & Receipts
+    GetInvoices: base_url + "v1/ScutsApi/admin/invoices_receipts/getInvoiceStats",
+    SearchInvoices: base_url + "v1/ScutsApi/admin/invoices_receipts/getInvoiceStats?search=",
+    PaginationInvoices: base_url + "v1/ScutsApi/admin/invoices_receipts/getInvoiceStats?page=",
+    ExportInvoices: base_url + "v1/ScutsApi/admin/invoices_receipts/export",
+
+    //Reports
+    GetReports: base_url + "v1/ScutsApi/admin/report/getReport",
+    GetExportReports: base_url + "v1/ScutsApi/admin/report/export",
+
+    //Appionments
+    GetAppionments: base_url + "v1/ScutsApi/admin/appointment/getAppointments",
+    SearchAppionments: base_url + "v1/ScutsApi/admin/appointment/getAppointments?search=",
+    AddAppionments: base_url + "v1/ScutsApi/admin/appointment/createAppointment",
+    GetByIdAppionments: base_url + "v1/ScutsApi/admin/appointment/getById",
+    CreateCustomerAppionments: base_url + "v1/ScutsApi/admin/appointment/createCustomer",
+    UpdateAapionments: base_url + "v1/ScutsApi/admin/appointment/updateAppointment/",
+    DeleteAppionments: base_url + "v1/ScutsApi/admin/appointment/cancelAppointment/",
+    StatsAppionments: base_url + "v1/ScutsApi/admin/appointment/getAppointmentStats",
+
+    //Staff Management
+    GetStaff: base_url + "v1/ScutsApi/admin/staff/getAllStaff",
+    AddStaff: base_url + "v1/ScutsApi/admin/staff/createStaff",
+    GetByIdStaff: base_url + "v1/ScutsApi/admin/staff/getStaffById",
+    UpdateStaff: base_url + "v1/ScutsApi/admin/staff/updateStaff/",
+    DeleteStaff: base_url + "v1/ScutsApi/admin/staff/deleteStaff/",
+    GetArchivedStaff: base_url + "v1/ScutsApi/admin/staff/getArchivedStaff",
+
+    //Roles
+    GetRoles: base_url + "v1/ScutsApi/admin/role/getAllRoles",
+    AddRole: base_url + "v1/ScutsApi/admin/role/createRole",
+    UpdateRole: base_url + "v1/ScutsApi/admin/role/updateRole/",
+    DeleteRole: base_url + "v1/ScutsApi/admin/role/deleteRole/",
+
+
 }
