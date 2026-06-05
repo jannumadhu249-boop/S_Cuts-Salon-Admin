@@ -310,7 +310,7 @@ const formatDateToInput = (dateStr) => {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return "";
-  return d.toISOString().split("T")[0]; // yyyy-mm-dd
+  return d.toISOString().split("T")[0];
 };
 
 const Staff = () => {

@@ -12,6 +12,9 @@ const Logout = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    localStorage.removeItem("userRoleName");
+    localStorage.removeItem("userPermissions");
+    sessionStorage.removeItem("profileSynced");
     dispatch(logoutUser(history));
   }, [dispatch, history]);
 

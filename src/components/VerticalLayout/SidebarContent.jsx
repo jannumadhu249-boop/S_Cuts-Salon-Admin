@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
+import { hasPermission } from "../../helpers/permission_helper";
 
 
 // //Import Scrollbar
@@ -140,116 +141,105 @@ const SidebarContent = props => {
     }
   }
 
+  const canViewDashboard = hasPermission("Dashboard");
+  const canViewAppointments = hasPermission("Appointments");
+  const canViewPOS = hasPermission("Point of Sale");
+  const canViewInvoices = hasPermission("Invoice & Receipts");
+  const canViewCategories = hasPermission("Categories");
+  const canViewServices = hasPermission("Services");
+  const canViewPackages = hasPermission("Service Packages");
+  const canViewCoupons = hasPermission("Coupons & Offers");
+  const canViewCustomers = hasPermission("Customers");
+  const canViewStaff = hasPermission("Staff Management");
+  const canViewRoles = hasPermission("Roles & Permissions");
+  const canViewProducts = hasPermission("Products");
+  const canViewReports = hasPermission("Reports");
+
+  const showMainSection = canViewDashboard || canViewAppointments || canViewPOS;
+  const showOperationsSection = canViewInvoices || canViewCategories || canViewServices || canViewPackages || canViewCoupons;
+  const showCustomersSection = canViewCustomers;
+  const showStaffSection = canViewStaff || canViewRoles || canViewProducts || canViewReports;
+
   return (
     <React.Fragment>
       <SimpleBar className="h-100" ref={ref}>
         <div id="sidebar-menu">
           <ul className="metismenu list-unstyled" id="side-menu">
-            <li className="menu-title">{props.t("Main")} </li>
-            <li>
-              <Link to="/dashboard" className="">
-                <i className="bx bxs-dashboard"></i>
-                <span>{props.t("Dashboard")}</span>
-              </Link>
-              {/* <ul className="sub-menu">
-                <li>
-                  <Link to="/dashboard">{props.t("Default")}</Link>
-                </li>
-                <li>
-                  <Link to="/dashboard-saas">{props.t("Saas")}</Link>
-                </li>
-                <li>
-                  <Link to="/dashboard-crypto">{props.t("Crypto")}</Link>
-                </li>
-                <li>
-                  <Link to="/blog">{props.t("Blog")}</Link>
-                </li>
-                <li>
-                  <Link to="/dashboard-job">                    
-                    {props.t("Job")}
-                  </Link>
-                </li>
-              </ul> */}
-            </li>
-            <li>
-              <Link to="/appointments" className="">
-                <i className="bx bx-calendar"></i>
-                <span>{props.t("Appoinments")}</span>
-              </Link>
-            </li>
+            {showMainSection && <li className="menu-title">{props.t("Main")}</li>}
+            
+            {canViewDashboard && (
+              <li>
+                <Link to="/dashboard" className="">
+                  <i className="bx bxs-dashboard"></i>
+                  <span>{props.t("Dashboard")}</span>
+                </Link>
+              </li>
+            )}
+            
+            {canViewAppointments && (
+              <li>
+                <Link to="/appointments" className="">
+                  <i className="bx bx-calendar"></i>
+                  <span>{props.t("Appoinments")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li>
-              <Link to="/pos" className="">
-                <i className="bx bx-cart"></i>
-                <span>{props.t("Point of Sale")}</span>
-              </Link>
-            </li>
+            {canViewPOS && (
+              <li>
+                <Link to="/pos" className="">
+                  <i className="bx bx-cart"></i>
+                  <span>{props.t("Point of Sale")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li className="menu-title">{props.t("Operations")}</li>
+            {showOperationsSection && <li className="menu-title">{props.t("Operations")}</li>}
 
-            <li>
-              <Link to="/invoice-billing" >
-                <i className="bx bx-receipt"></i>
-                <span>{props.t("Invoices & Receipts")}</span>
-              </Link>
-            </li>
+            {canViewInvoices && (
+              <li>
+                <Link to="/invoice-billing" >
+                  <i className="bx bx-receipt"></i>
+                  <span>{props.t("Invoices & Receipts")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li>
-              <Link to="/category" className="">
-                <i className="bx bx-category"></i>
-                <span>{props.t("Categories")}</span>
-              </Link>
-            </li>
+            {canViewCategories && (
+              <li>
+                <Link to="/category" className="">
+                  <i className="bx bx-category"></i>
+                  <span>{props.t("Categories")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li>
-              <Link to="/services" >
-                <i className="bx bx-wrench"></i>
-                <span>{props.t("Services")}</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/service-packages" >
-                <i className="bx bx-package"></i>
-                <span>{props.t("Services Packages")}</span>
-              </Link>
-            </li>
+            {canViewServices && (
+              <li>
+                <Link to="/services" >
+                  <i className="bx bx-wrench"></i>
+                  <span>{props.t("Services")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li>
-              <Link to="/coupons" className="">
-                <i className="bx bxs-offer"></i>
-                <span>{props.t("Coupons & Offers")}</span>
-              </Link>
-              {/* <ul className="sub-menu">
-                <li>
-                  <Link to="/ecommerce-products">{props.t("Products")}</Link>
-                </li>
-                <li>
-                  <Link to="/ecommerce-product-detail/1">
-                    {props.t("Product Detail")}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/ecommerce-orders">{props.t("Orders")}</Link>
-                </li>
-                <li>
-                  <Link to="/ecommerce-customers">{props.t("Customers")}</Link>
-                </li>
-                <li>
-                  <Link to="/ecommerce-cart">{props.t("Cart")}</Link>
-                </li>
-                <li>
-                  <Link to="/ecommerce-checkout">{props.t("Checkout")}</Link>
-                </li>
-                <li>
-                  <Link to="/ecommerce-shops">{props.t("Shops")}</Link>
-                </li>
-                <li>
-                  <Link to="/ecommerce-add-product">
-                    {props.t("Add Product")}
-                  </Link>
-                </li>
-              </ul> */}
-            </li>
+            {canViewPackages && (
+              <li>
+                <Link to="/service-packages" >
+                  <i className="bx bx-package"></i>
+                  <span>{props.t("Services Packages")}</span>
+                </Link>
+              </li>
+            )}
+
+            {canViewCoupons && (
+              <li>
+                <Link to="/coupons" className="">
+                  <i className="bx bxs-offer"></i>
+                  <span>{props.t("Coupons & Offers")}</span>
+                </Link>
+              </li>
+            )}
 
             {/* <li>
               <Link to="/#" className="has-arrow ">
@@ -434,124 +424,52 @@ const SidebarContent = props => {
               </ul>
             </li> */}
 
-            <li className="menu-title">Customers</li>
-            <li>
-              <Link to="/customers" className="">
-                <i className="bx bx-user-circle"></i>
-                <span>{props.t("Customers")}</span>
-              </Link>
-              {/* <ul className="sub-menu">
-                <li>
-                  <Link to="/pages-login">{props.t("Login")}</Link>
-                </li>
-                <li>
-                  <Link to="/pages-login-2">{props.t("Login 2")}</Link>
-                </li>
-                <li>
-                  <Link to="/pages-register">{props.t("Register")}</Link>
-                </li>
-                <li>
-                  <Link to="/pages-register-2">{props.t("Register 2")}</Link>
-                </li>
-                <li>
-                  <Link to="/page-recoverpw">
-                    {props.t("Recover Password")}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/page-recoverpw-2">
-                    {props.t("Recover Password 2")}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/auth-lock-screen">{props.t("Lock Screen")}</Link>
-                </li>
-                <li>
-                  <Link to="/auth-lock-screen-2">
-                    {props.t("Lock Screen 2")}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/page-confirm-mail">{props.t("Confirm Mail")}</Link>
-                </li>
-                <li>
-                  <Link to="/page-confirm-mail-2">
-                    {props.t("Confirm Mail 2")}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/auth-email-verification">
-                    {props.t("Email Verification")}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/auth-email-verification-2">
-                    {props.t("Email Verification 2")}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/auth-two-step-verification">
-                    {props.t("Two Step Verification")}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/auth-two-step-verification-2">
-                    {props.t("Two Step Verification 2")}
-                  </Link>
-                </li>
-              </ul> */}
-            </li>
-            {/* <li>
-              <Link to="/memberships" className="">
-                <i className="bx bx-user-check"></i>
-                <span>{props.t("Memberships")}</span>
-              </Link>
-            </li> */}
+            {showCustomersSection && <li className="menu-title">Customers</li>}
+            {canViewCustomers && (
+              <li>
+                <Link to="/customers" className="">
+                  <i className="bx bx-user-circle"></i>
+                  <span>{props.t("Customers")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li className="menu-title">{props.t("Staff & Managements")}</li>
-            <li>
-              <Link to="/staff" className="">
-                <i className="bx bx-group" />
-                <span>{props.t("Staff Management")}</span>
-              </Link>
-            </li>
+            {showStaffSection && <li className="menu-title">{props.t("Staff & Managements")}</li>}
+            {canViewStaff && (
+              <li>
+                <Link to="/staff" className="">
+                  <i className="bx bx-group" />
+                  <span>{props.t("Staff Management")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li>
-              <Link to="/roles-permissions" className="">
-                <i className="bx bx-key" />
-                <span>{props.t("Roles & Permissions")}</span>
-              </Link>
-            </li>
+            {canViewRoles && (
+              <li>
+                <Link to="/roles-permissions" className="">
+                  <i className="bx bx-key" />
+                  <span>{props.t("Roles & Permissions")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li>
-              <Link to="/products" >
-                <i className="bx bx-cube"></i>
-                <span>{props.t("Products")}</span>
-              </Link>
-            </li>
+            {canViewProducts && (
+              <li>
+                <Link to="/products" >
+                  <i className="bx bx-cube"></i>
+                  <span>{props.t("Products")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li>
-              <Link to="/reports" className="">
-                <i className="bx bx-bar-chart"></i>
-                <span>{props.t("Reports")}</span>
-              </Link>
-              {/* <ul className="sub-menu">
-                <li>
-                  <Link to="/tables-basic">{props.t("Basic Tables")}</Link>
-                </li>
-                <li>
-                  <Link to="/tables-datatable">{props.t("Data Tables")}</Link>
-                </li>
-                <li>
-                  <Link to="/tables-responsive">
-                    {props.t("Responsive Table")}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/tables-dragndrop">{props.t("Drag & Drop Table")}</Link>
-                </li>
-              </ul> */}
-            </li>
+            {canViewReports && (
+              <li>
+                <Link to="/reports" className="">
+                  <i className="bx bx-bar-chart"></i>
+                  <span>{props.t("Reports")}</span>
+                </Link>
+              </li>
+            )}
 
             {/* <li>
               <Link to="/#" className="has-arrow ">

@@ -317,9 +317,34 @@ const handleCustomerSearch = (value) => {
   }, []);
 
   // ─── Cart Operations ──────────────────────────────────────────────────────
+  // const addToCart = (item, type) => {
+  //   const id = item._id;
+  //   const existing = cartItems.find((c) => c.id === id);
+  //   if (existing) {
+  //     setCartItems((prev) =>
+  //       prev.map((c) => (c.id === id ? { ...c, quantity: c.quantity + 1 } : c))
+  //     );
+  //   } else {
+  //     const price = item.price || item.packagePrice || item.servicePrice || 0;
+  //     const name =
+  //       item.serviceName || item.packageName || item.name || item.productName || "Item";
+  //     setCartItems((prev) => [
+  //       ...prev,
+  //       { id, name, price, quantity: 1, type, itemId: id },
+  //     ]);
+  //   }
+  // };
+
   const addToCart = (item, type) => {
-    const id = item._id;
-    const existing = cartItems.find((c) => c.id === id);
+  // ✅ Prevent adding items if no customer is selected
+  if (!selectedCustomer) {
+    setBillError("Please select a customer before adding items.");
+    setTimeout(() => setBillError(""), 3000);
+    return;
+  }
+
+  const id = item._id;
+  const existing = cartItems.find((c) => c.id === id);
     if (existing) {
       setCartItems((prev) =>
         prev.map((c) => (c.id === id ? { ...c, quantity: c.quantity + 1 } : c))
@@ -1940,3 +1965,4 @@ const handleCustomerSearch = (value) => {
 };
 
 export default PointOfSale;
+

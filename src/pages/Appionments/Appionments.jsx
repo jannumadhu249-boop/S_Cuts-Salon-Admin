@@ -1144,7 +1144,16 @@ const Appointments = () => {
                             <tr key={apt._id}>
                               <td className="text-muted small">{apt.appointmentId}</td>
                               <td><div className="fw-bold">{apt.customerName}</div><small className="text-muted">{apt.customerPhone}</small></td>
-                              <td>{apt.appointmentDate}</td><td>{apt.appointmentTime}</td><td>{apt.serviceName || "—"}</td><td>{apt.staffName || "—"}</td>
+                              {/* <td>{apt.appointmentDate}</td> */}
+                              <td>
+                                {apt.appointmentDate}
+                                {apt.appointmentDate === formatDate(new Date()) && (
+                                  <Badge color="success" className="ms-2 rounded-pill" pill>Today</Badge>
+                                )}
+                              </td>
+                              <td>{apt.appointmentTime}</td>
+                              <td>{apt.serviceName || "—"}</td>
+                              <td>{apt.staffName || "—"}</td>
                               <td><Badge color={apt.status === "Upcoming" ? "primary" : apt.status === "Completed" ? "success" : apt.status === "Cancelled" ? "danger" : "warning"} className="rounded-pill px-3 py-1">{apt.status}</Badge></td>
                               <td>
                                 <div className="d-flex gap-1">

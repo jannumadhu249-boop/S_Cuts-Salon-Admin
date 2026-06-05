@@ -40,6 +40,9 @@ const Login = props => {
         });
         
         if (response.success) {
+          localStorage.removeItem("userRoleName");
+          localStorage.removeItem("userPermissions");
+          sessionStorage.removeItem("profileSynced");
           localStorage.setItem("authUser", JSON.stringify(response));
           dispatch(loginSuccess(response));
           props.router.navigate("/dashboard");
