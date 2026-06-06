@@ -516,11 +516,11 @@ const SearchableSelect = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Debug logging
   // console.log("SearchableSelect - options:", options);
   // console.log("SearchableSelect - labelKey:", labelKey, "valueKey:", valueKey);
-  
+
   const filtered = options.filter((opt) =>
     opt[labelKey]?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -589,8 +589,14 @@ const Appointments = () => {
   const [pagination, setPagination] = useState({ total: 0, currentPage: 1, totalPages: 1, limit: 10, hasNextPage: false, hasPreviousPage: false });
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
-  const [bookingSourceFilter, setBookingSourceFilter] = useState("");
+  const [bookingSourceFilter, setBookingSourceFilter] = useState("POS");
   const [loading, setLoading] = useState(false);
+
+  // Status update modal
+  const [statusModal, setStatusModal] = useState(false);
+  const [statusAppointment, setStatusAppointment] = useState(null);
+  const [newStatus, setNewStatus] = useState("");
+  const [cancelReason, setCancelReason] = useState("");
 
   // Form
   const [editMode, setEditMode] = useState(false);
@@ -606,7 +612,7 @@ const Appointments = () => {
     appointmentDate: "",
     appointmentTime: "",
     notes: "",
-    bookingSource: "WEB",
+    bookingSource: "",
   });
 
   const [newCustomer, setNewCustomer] = useState({ name: "", phone: "" });
@@ -627,10 +633,10 @@ const Appointments = () => {
     try {
       const json = await post(URLS.StatsAppionments, {});
       if (json.success) setStats(json.data);
-    } catch (err) { 
-      console.error("Stats error:", err); 
-    } finally { 
-      setLoadingStats(false); 
+    } catch (err) {
+      console.error("Stats error:", err);
+    } finally {
+      setLoadingStats(false);
     }
   };
 
@@ -653,14 +659,14 @@ const Appointments = () => {
       const body = {
         fromDate,
         toDate,
-        fromTime: "12:00 AM",
-        toTime: "11:59 PM",
+        // fromTime: "12:00 AM",
+        // toTime: "11:59 PM",
         bookingSource: bookingSourceFilter || "",
         status: statusFilter === "All Statuses" ? "" : statusFilter,
       };
 
       const params = new URLSearchParams({
-        search: search || "null",
+        search: search || "",
         page: pagination.currentPage,
         limit: pagination.limit,
       });
@@ -670,10 +676,11 @@ const Appointments = () => {
         setAppointments(json.data || []);
         setPagination(json.pagination);
       }
-    } catch (err) { 
-      console.error("Fetch error:", err); 
-    } finally { 
-      setLoading(false); 
+    } catch (err) {
+      console.error("Fetch error:", err);
+      toast.error("Failed to load appointments. Please try again.");
+    } finally {
+      setLoading(false);
     }
   }, [activeTab, dateRange, selectedDate, search, pagination.currentPage, pagination.limit, bookingSourceFilter, statusFilter]);
 
@@ -686,10 +693,10 @@ const Appointments = () => {
         const customerData = json.data || [];
         setCustomers(customerData);
       }
-    } catch (err) { 
-      console.error("Customers error:", err); 
-    } finally { 
-      setLoadingCustomers(false); 
+    } catch (err) {
+      console.error("Customers error:", err);
+    } finally {
+      setLoadingCustomers(false);
     }
   };
 
@@ -701,10 +708,10 @@ const Appointments = () => {
         const packageData = json.data || [];
         setPackages(packageData);
       }
-    } catch (err) { 
-      console.error("Packages error:", err); 
-    } finally { 
-      setLoadingPackages(false); 
+    } catch (err) {
+      console.error("Packages error:", err);
+    } finally {
+      setLoadingPackages(false);
     }
   };
 
@@ -730,10 +737,10 @@ const Appointments = () => {
         const serviceData = json.data || [];
         setServices(serviceData);
       }
-    } catch (err) { 
-      console.error("Services error:", err); 
-    } finally { 
-      setLoadingServices(false); 
+    } catch (err) {
+      console.error("Services error:", err);
+    } finally {
+      setLoadingServices(false);
     }
   };
 
@@ -783,6 +790,8 @@ const Appointments = () => {
     }
 
     setDateRange([fromDate, toDate]);
+    // Reset pagination to first page whenever the filter changes
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
   };
 
   // ----- Modals -----
@@ -790,8 +799,8 @@ const Appointments = () => {
     if (modal) { resetForm(); setEditMode(false); setSelectedAppointment(null); }
     setModal(!modal);
   };
-   const toggleCustomerModal = () => setCustomerModal(!customerModal);
-  
+  const toggleCustomerModal = () => setCustomerModal(!customerModal);
+
 
   const resetForm = () => {
     setFormData({
@@ -799,7 +808,7 @@ const Appointments = () => {
       customerId: "", customerName: "", customerPhone: "",
       serviceId: "", staffId: "", packageId: "",
       appointmentDate: "", appointmentTime: "",
-      notes: "", bookingSource: "WEB",
+      notes: "", bookingSource: ""
     });
   };
 
@@ -822,15 +831,15 @@ const Appointments = () => {
           appointmentDate: d.appointmentDate,
           appointmentTime: d.appointmentTime,
           notes: d.notes || "",
-          bookingSource: d.bookingSource || "WEB",
+          bookingSource: d.bookingSource || "",
         });
         setEditMode(true);
         setModal(true);
       }
-    } catch (err) { 
-      console.error("Edit fetch error:", err); 
-    } finally { 
-      setLoading(false); 
+    } catch (err) {
+      console.error("Edit fetch error:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -857,7 +866,7 @@ const Appointments = () => {
 
       let json;
       if (editMode && selectedAppointment) {
-        json = await put(`${URLS.UpdateAapionments}${selectedAppointment._id}`, payload);
+        json = await put(`${URLS.UpdateAppionments}${selectedAppointment._id}`, payload);
       } else {
         json = await post(URLS.AddAppionments, payload);
       }
@@ -869,11 +878,11 @@ const Appointments = () => {
       } else {
         alert("Operation failed: " + (json.message || "Unknown error"));
       }
-    } catch (err) { 
-      console.error("Submit error:", err); 
+    } catch (err) {
+      console.error("Submit error:", err);
       alert("Operation failed. Please try again.");
-    } finally { 
-      setLoading(false); 
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -883,17 +892,73 @@ const Appointments = () => {
     setLoading(true);
     try {
       const json = await del(`${URLS.DeleteAppionments}${id}`);
-      if (json.success) { 
-        fetchAppointments(); 
-        fetchStats(); 
+      if (json.success) {
+        fetchAppointments();
+        fetchStats();
       } else {
         alert("Cancel failed.");
       }
-    } catch (err) { 
-      console.error("Cancel error:", err); 
+    } catch (err) {
+      console.error("Cancel error:", err);
       alert("Cancel failed. Please try again.");
-    } finally { 
-      setLoading(false); 
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Open status change modal
+  const openStatusModal = (apt) => {
+    setStatusAppointment(apt);
+    setNewStatus(apt.status || "Pending");
+    setCancelReason(apt.cancellationReason || "");
+    setStatusModal(true);
+  };
+
+  // Update appointment status
+  const updateAppointmentStatus = async () => {
+    if (!statusAppointment) return;
+
+    // Validation: cancellation reason required if status is "Cancelled"
+    if (newStatus === "Cancelled" && (!cancelReason || cancelReason.trim() === "")) {
+      toast.error("Cancellation reason is required when cancelling an appointment.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        status: newStatus,
+      };
+
+      // Only include cancellationReason if status is Cancelled and reason exists
+      if (newStatus === "Cancelled") payload.cancellationReason = cancelReason.trim();
+
+      // Use the dedicated status update endpoint
+      const endpoint = `${URLS.UpdateAppionmentStatus}/${statusAppointment._id}`;
+      console.log("PUT request to:", endpoint);
+      console.log("Payload:", payload);
+
+      const json = await put(endpoint, payload);
+      console.log("Response:", json);
+
+      if (json.success) {
+        toast.success(`Status updated to ${newStatus}`);
+        setStatusModal(false);
+        // Reset fields
+        setNewStatus("");
+        setCancelReason("");
+        setStatusAppointment(null);
+        // Refresh data
+        fetchAppointments();
+        fetchStats();
+      } else {
+        toast.error(json.message || "Failed to update status. Please try again.");
+      }
+    } catch (err) {
+      console.error("Status update error:", err);
+      toast.error("An error occurred while updating status. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -932,59 +997,59 @@ const Appointments = () => {
   // };
 
   const handleCreateCustomer = async () => {
-  if (!newCustomer.name || !newCustomer.phone) {
-    alert("Name and phone required");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    // Send only customer details (use your dedicated customer-creation endpoint)
-    const payload = {
-      customerName: newCustomer.name,
-      customerPhone: newCustomer.phone,
-    };
-
-    const json = await post(URLS.CreateCustomerAppionments, payload);
-    
-    if (json.success) {
-
-  const newCustomerId =
-    json.data.customerId ||
-    json.data._id;
-
-  // Refresh customer list
-  await fetchCustomers();
-
-  // Select newly created customer
-  setFormData(prev => ({
-    ...prev,
-    customerType: "existing",
-    customerId: newCustomerId,
-    customerName: "",
-    customerPhone: "",
-  }));
-
-  // Reset modal fields
-  setNewCustomer({
-    name: "",
-    phone: "",
-  });
-
-  toggleCustomerModal();
-
-  toast.success("Customer created and selected.");
-} 
-    else {
-      toast.error("Failed: " + (json.message || "Unknown error"));
+    if (!newCustomer.name || !newCustomer.phone) {
+      alert("Name and phone required");
+      return;
     }
-  } catch (err) {
-    console.error("Create customer error:", err);
-    toast.error("Failed to create customer. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+
+    setLoading(true);
+    try {
+      // Send only customer details (use your dedicated customer-creation endpoint)
+      const payload = {
+        customerName: newCustomer.name,
+        customerPhone: newCustomer.phone,
+      };
+
+      const json = await post(URLS.CreateCustomerAppionments, payload);
+
+      if (json.success) {
+
+        const newCustomerId =
+          json.data.customerId ||
+          json.data._id;
+
+        // Refresh customer list
+        await fetchCustomers();
+
+        // Select newly created customer
+        setFormData(prev => ({
+          ...prev,
+          customerType: "existing",
+          customerId: newCustomerId,
+          customerName: "",
+          customerPhone: "",
+        }));
+
+        // Reset modal fields
+        setNewCustomer({
+          name: "",
+          phone: "",
+        });
+
+        toggleCustomerModal();
+
+        toast.success("Customer created and selected.");
+      }
+      else {
+        toast.error("Failed: " + (json.message || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Create customer error:", err);
+      toast.error("Failed to create customer. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ----- Summary Cards -----
   const summaryCards = [
@@ -1007,7 +1072,7 @@ const Appointments = () => {
       if (period === "AM" && hour === 12) hour = 0;
       const start = hour * 60 + minute;
       const duration = apt.duration || 60;
-      const slotStart = 8 * 60; // 8:00 AM
+      const slotStart = 8 * 60;
       const top = ((start - slotStart) / 60) * 60;
       const height = (duration / 60) * 60;
       if (start < slotStart || start >= slotStart + 13 * 60) return null;
@@ -1112,6 +1177,7 @@ const Appointments = () => {
                       <option>All Statuses</option>
                       <option>Confirmed</option>
                       <option>Pending</option>
+                      <option>Completed</option>
                       <option>Upcoming</option>
                       <option>Cancelled</option>
                     </Input>
@@ -1136,29 +1202,59 @@ const Appointments = () => {
                       <Table className="mb-0 align-middle" hover>
                         <thead className="bg-light">
                           <tr>
-                            <th>ID</th><th>Customer</th><th>Date</th><th>Time</th><th>Service</th><th>Staff</th><th>Status</th><th>Actions</th>
+                            <th>SL.No</th>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Service</th>
+                            <th>Staff</th>
+                            <th>Package</th>
+                            <th>Notes</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {appointments.filter(apt => statusFilter === "All Statuses" ? true : apt.status === statusFilter).map(apt => (
+                          {appointments.filter(apt => (statusFilter === "All Statuses" ? true : apt.status === statusFilter)).map((apt, idx) => (
                             <tr key={apt._id}>
+                              <td>{(pagination.currentPage - 1) * pagination.limit + idx + 1}</td>
                               <td className="text-muted small">{apt.appointmentId}</td>
                               <td><div className="fw-bold">{apt.customerName}</div><small className="text-muted">{apt.customerPhone}</small></td>
                               {/* <td>{apt.appointmentDate}</td> */}
                               <td>
                                 {apt.appointmentDate}
-                                {apt.appointmentDate === formatDate(new Date()) && (
+                                {/* {apt.appointmentDate === formatDate(new Date()) && (
                                   <Badge color="success" className="ms-2 rounded-pill" pill>Today</Badge>
-                                )}
+                                )} */}
                               </td>
                               <td>{apt.appointmentTime}</td>
                               <td>{apt.serviceName || "—"}</td>
                               <td>{apt.staffName || "—"}</td>
-                              <td><Badge color={apt.status === "Upcoming" ? "primary" : apt.status === "Completed" ? "success" : apt.status === "Cancelled" ? "danger" : "warning"} className="rounded-pill px-3 py-1">{apt.status}</Badge></td>
+                              <td>{apt.packageName || "—"}</td>
+                              <td>{apt.notes || "—"}</td>
+                              <td><Badge
+                                  color={
+                                    apt.status === "Confirmed" ? "primary" :
+                                    apt.status === "Completed" ? "success" :
+                                    apt.status === "Cancelled" ? "danger" :
+                                    apt.status === "Pending" ? "warning" : "secondary"
+                                  }
+                                  className={classNames("rounded-pill px-3 py-2 text-white", {
+                                    "badge-violet": apt.status === "Upcoming"
+                                  })}
+                                >
+                                  {apt.status}
+                                </Badge>
+                              </td>
                               <td>
                                 <div className="d-flex gap-1">
-                                  <Button color="light" size="sm" className="rounded-pill" onClick={() => openEditModal(apt)}><i className="bx bx-edit-alt"></i></Button>
-                                  <Button color="light" size="sm" className="rounded-pill text-danger" onClick={() => cancelAppointment(apt._id)}><i className="bx bx-trash"></i></Button>
+                                  {/* Status change button */}
+                                  <Button color="light" size="md" title="Change Status" className="rounded-pill text-warning me-2" onClick={() => openStatusModal(apt)}>
+                                    <i className="bx bx-check-circle"></i>
+                                  </Button>
+                                  <Button color="light" size="md" title="Edit" className="rounded-pill text-primary me-2" onClick={() => openEditModal(apt)}><i className="bx bx-edit-alt"></i></Button>
+                                  <Button color="light" size="md" title="Delete" className="rounded-pill text-danger" onClick={() => cancelAppointment(apt._id)}><i className="bx bx-trash"></i></Button>
                                 </div>
                               </td>
                             </tr>
@@ -1211,8 +1307,8 @@ const Appointments = () => {
                       <i className="bx bx-chevron-right fs-5"></i>
                     </Button>
                   </div>
-                  <Button 
-                    color="light" 
+                  <Button
+                    color="light"
                     className="rounded-pill px-3 py-1 bg-white border fw-medium text-muted"
                     onClick={() => setSelectedDate(new Date())}
                   >
@@ -1295,11 +1391,11 @@ const Appointments = () => {
                     <FormGroup check><Input type="radio" name="customerType" checked={formData.customerType === "new"} onChange={() => setFormData({...formData, customerType: "new"})} /> <Label check>New Customer</Label></FormGroup>
                   </div> */}
                   {formData.customerType === "existing" ? (
-                    <SearchableSelect key={formData.customerId} options={customers} value={formData.customerId} onChange={(id) => setFormData({...formData, customerId: id})} placeholder="Search and select customer..." labelKey="name" valueKey="_id" isLoading={loadingCustomers} />
+                    <SearchableSelect key={formData.customerId} options={customers} value={formData.customerId} onChange={(id) => setFormData({ ...formData, customerId: id })} placeholder="Search and select customer..." labelKey="name" valueKey="_id" isLoading={loadingCustomers} />
                   ) : (
                     <Row>
-                      <Col md={6}><Input type="text" placeholder="Customer Name" className="rounded-pill border-2 px-3 py-2" value={formData.customerName} onChange={e => setFormData({...formData, customerName: e.target.value})} /></Col>
-                      <Col md={6}><Input type="text" placeholder="Phone" className="rounded-pill border-2 px-3 py-2" value={formData.customerPhone} maxLength={10} onChange={e => setFormData({...formData, customerPhone: e.target.value})} /></Col>
+                      <Col md={6}><Input type="text" placeholder="Customer Name" className="rounded-pill border-2 px-3 py-2" value={formData.customerName} onChange={e => setFormData({ ...formData, customerName: e.target.value })} /></Col>
+                      <Col md={6}><Input type="text" placeholder="Phone" className="rounded-pill border-2 px-3 py-2" value={formData.customerPhone} maxLength={10} onChange={e => setFormData({ ...formData, customerPhone: e.target.value })} /></Col>
                     </Row>
                   )}
                 </FormGroup>
@@ -1314,7 +1410,7 @@ const Appointments = () => {
                     <FormGroup>
                       <Label className="fw-bold mb-3">Date *</Label>
                       <Flatpickr className="form-control rounded-4 border-light bg-light px-3 py-2" placeholder="YYYY-MM-DD" options={{ dateFormat: "Y-m-d" }}
-                        value={formData.appointmentDate} onChange={date => setFormData({...formData, appointmentDate: formatDate(date[0])})} />
+                        value={formData.appointmentDate} onChange={date => setFormData({ ...formData, appointmentDate: formatDate(date[0]) })} />
                     </FormGroup>
                   </Col>
                   <Col md={6}>
@@ -1322,7 +1418,7 @@ const Appointments = () => {
                       <Label className="fw-bold mb-3">Time *</Label>
                       <Flatpickr className="form-control rounded-4 border-light bg-light px-3 py-2" placeholder="--:--" options={{ noCalendar: true, enableTime: true, dateFormat: "h:i K" }}
                         value={formatTimeForInput(formData.appointmentTime)}
-                        onChange={time => setFormData({...formData, appointmentTime: time[0] ? formatTimeForApi(new Date(time[0]).toTimeString().split(" ")[0]) : ""})} />
+                        onChange={time => setFormData({ ...formData, appointmentTime: time[0] ? formatTimeForApi(new Date(time[0]).toTimeString().split(" ")[0]) : "" })} />
                     </FormGroup>
                   </Col>
                 </Row>
@@ -1332,14 +1428,14 @@ const Appointments = () => {
                   <Col md={6}>
                     <FormGroup>
                       <Label className="fw-bold mb-3">Package (Optional)</Label>
-                      <SearchableSelect options={packages} value={formData.packageId} onChange={id => setFormData({...formData, packageId: id})} placeholder="Select package" labelKey="packageName" valueKey="_id" isLoading={loadingPackages} />
+                      <SearchableSelect options={packages} value={formData.packageId} onChange={id => setFormData({ ...formData, packageId: id })} placeholder="Select package" labelKey="packageName" valueKey="_id" isLoading={loadingPackages} />
                     </FormGroup>
                   </Col>
                   <Col md={6}>
                     <FormGroup>
                       <Label className="fw-bold mb-3">Booking Source *</Label>
                       <Input type="select" className="rounded-pill border-light bg-light px-4 py-2 form-select" value={formData.bookingSource}
-                        onChange={e => setFormData({...formData, bookingSource: e.target.value})}>
+                        onChange={e => setFormData({ ...formData, bookingSource: e.target.value })}>
                         <option value="WEB">WEB</option><option value="POS">POS</option>
                       </Input>
                     </FormGroup>
@@ -1351,13 +1447,13 @@ const Appointments = () => {
                   <Col md={6}>
                     <FormGroup>
                       <Label className="fw-bold mb-3">Staff (Optional)</Label>
-                      <SearchableSelect options={staffList} value={formData.staffId} onChange={id => setFormData({...formData, staffId: id})} placeholder="Select staff" labelKey="name" valueKey="_id" isLoading={loadingStaff} />
+                      <SearchableSelect options={staffList} value={formData.staffId} onChange={id => setFormData({ ...formData, staffId: id })} placeholder="Select staff" labelKey="name" valueKey="_id" isLoading={loadingStaff} />
                     </FormGroup>
                   </Col>
                   <Col md={6}>
                     <FormGroup>
                       <Label className="fw-bold mb-3">Service (Optional)</Label>
-                      <SearchableSelect options={services} value={formData.serviceId} onChange={id => setFormData({...formData, serviceId: id})} placeholder="Select service" labelKey="serviceName" valueKey="_id" isLoading={loadingServices} />
+                      <SearchableSelect options={services} value={formData.serviceId} onChange={id => setFormData({ ...formData, serviceId: id })} placeholder="Select service" labelKey="serviceName" valueKey="_id" isLoading={loadingServices} />
                     </FormGroup>
                   </Col>
                 </Row>
@@ -1366,8 +1462,9 @@ const Appointments = () => {
                 <FormGroup className="mb-3">
                   <Label className="fw-bold mb-3">Notes (Optional)</Label>
                   <Input type="textarea" rows="4" placeholder="Any special requests or notes..." className="rounded-4 border-light bg-light px-4 py-2"
-                    value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} />
+                    value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
                 </FormGroup>
+
               </Form>
             </ModalBody>
             <ModalFooter className="border-0 px-4 pb-3 pt-0 gap-2">
@@ -1387,13 +1484,71 @@ const Appointments = () => {
             </ModalHeader>
             <ModalBody className="px-5 py-4">
               <Form>
-                <FormGroup className="mb-3"><Label className="fw-bold mb-3">Name *</Label><Input type="text" placeholder="Customer name" className="rounded-4 border-primary border-2 px-4 py-2" value={newCustomer.name} onChange={e => setNewCustomer({...newCustomer, name: e.target.value})} /></FormGroup>
-                <FormGroup className="mb-3"><Label className="fw-bold mb-3">Phone *</Label><div className="d-flex gap-2"><div style={{width:'100px'}}><Input type="select" className="rounded-pill border-light bg-light px-1 py-2 form-select"><option>IN +91</option></Input></div><Input type="text" placeholder="Phone number" className="rounded-pill border-light bg-light px-4 py-2 flex-grow-1" value={newCustomer.phone} maxLength={10} onChange={e => setNewCustomer({...newCustomer, phone: e.target.value})} /></div></FormGroup>
+                <FormGroup className="mb-3"><Label className="fw-bold mb-3">Name *</Label><Input type="text" placeholder="Customer name" className="rounded-4 border-primary border-2 px-4 py-2" value={newCustomer.name} onChange={e => setNewCustomer({ ...newCustomer, name: e.target.value })} /></FormGroup>
+                <FormGroup className="mb-3"><Label className="fw-bold mb-3">Phone *</Label><div className="d-flex gap-2"><div style={{ width: '100px' }}><Input type="select" className="rounded-pill border-light bg-light px-1 py-2 form-select"><option>IN +91</option></Input></div><Input type="text" placeholder="Phone number" className="rounded-pill border-light bg-light px-4 py-2 flex-grow-1" value={newCustomer.phone} maxLength={10} onChange={e => setNewCustomer({ ...newCustomer, phone: e.target.value })} /></div></FormGroup>
               </Form>
             </ModalBody>
             <ModalFooter className="border-0 px-3 pb-3 pt-0 gap-3">
               <Button color="light" className="rounded-pill px-4 py-2 fw-medium bg-light border-0" onClick={toggleCustomerModal}>Cancel</Button>
               <Button color="primary" className="rounded-pill px-4 py-2 fw-medium shadow-primary" onClick={handleCreateCustomer} disabled={loading}>{loading ? <Spinner size="sm" /> : "Create and Select"}</Button>
+            </ModalFooter>
+          </div>
+        </Modal>
+
+        {/* Status Update Modal */}
+        <Modal isOpen={statusModal} toggle={() => setStatusModal(false)} centered className="status-update-modal">
+          <div className="modal-content border-0 rounded-4">
+            <ModalHeader toggle={() => setStatusModal(false)} className="border-0 pb-0 px-4 pt-4">
+              <div className="text-center w-100">
+                <h4 className="fw-bold mb-1">Update Appointment Status</h4>
+                <p className="text-muted small">
+                  {statusAppointment?.customerName} – {statusAppointment?.appointmentDate} at {statusAppointment?.appointmentTime}
+                </p>
+              </div>
+            </ModalHeader>
+            <ModalBody className="px-4 py-3">
+              <FormGroup className="mb-3">
+                <Label className="fw-bold mb-2">Status</Label>
+                <Input
+                  type="select"
+                  className="rounded-pill border-light bg-light px-4 py-2"
+                  value={newStatus}
+                  onChange={(e) => {
+                    setNewStatus(e.target.value);
+                    if (e.target.value !== "Cancelled") {
+                      setCancelReason("");
+                    }
+                  }}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Confirmed">Confirmed</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                  <option value="Upcoming">Upcoming</option>
+                </Input>
+              </FormGroup>
+
+              {newStatus === "Cancelled" && (
+                <FormGroup className="mb-3">
+                  <Label className="fw-bold mb-2">Cancellation Reason</Label>
+                  <Input
+                    type="textarea"
+                    rows="3"
+                    placeholder="Please provide a reason for cancellation..."
+                    className="rounded-4 border-light bg-light px-4 py-2"
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                  />
+                </FormGroup>
+              )}
+            </ModalBody>
+            <ModalFooter className="border-0 px-4 pb-3 pt-0 gap-2">
+              <Button color="light" className="rounded-pill px-4 py-2" onClick={() => setStatusModal(false)}>
+                Cancel
+              </Button>
+              <Button color="primary" className="rounded-pill px-4 py-2" onClick={updateAppointmentStatus} disabled={loading}>
+                {loading ? <Spinner size="sm" /> : "Update Status"}
+              </Button>
             </ModalFooter>
           </div>
         </Modal>

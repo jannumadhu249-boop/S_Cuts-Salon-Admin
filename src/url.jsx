@@ -100,9 +100,10 @@ export const URLS = {
     AddAppionments: base_url + "v1/ScutsApi/admin/appointment/createAppointment",
     GetByIdAppionments: base_url + "v1/ScutsApi/admin/appointment/getById",
     CreateCustomerAppionments: base_url + "v1/ScutsApi/admin/appointment/createCustomer",
-    UpdateAapionments: base_url + "v1/ScutsApi/admin/appointment/updateAppointment/",
+    UpdateAppionments: base_url + "v1/ScutsApi/admin/appointment/updateAppointment/",
     DeleteAppionments: base_url + "v1/ScutsApi/admin/appointment/cancelAppointment/",
     StatsAppionments: base_url + "v1/ScutsApi/admin/appointment/getAppointmentStats",
+    UpdateAppionmentStatus: base_url + "v1/ScutsApi/admin/appointment/updateAppointmentStatus",
 
     //Staff Management
     GetStaff: base_url + "v1/ScutsApi/admin/staff/getAllStaff",

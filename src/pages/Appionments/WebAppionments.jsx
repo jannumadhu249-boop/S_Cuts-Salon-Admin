@@ -88,14 +88,14 @@ const WebAppointments = () => {
       const body = {
         fromDate,
         toDate,
-        fromTime: "12:00 AM",
-        toTime: "11:59 PM",
+        // fromTime: "12:00 AM",
+        // toTime: "11:59 PM",
         bookingSource: "WEB",
         status: statusFilter === "All Statuses" ? "" : statusFilter,
       }
 
       const params = new URLSearchParams({
-        search: search || "null",
+        search: search || "",
         page: pagination.currentPage,
         limit: pagination.limit,
       })
