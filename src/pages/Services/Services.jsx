@@ -33,6 +33,7 @@ const Services = () => {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
+  const [type, setType] = useState("")
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1)
@@ -61,6 +62,7 @@ const Services = () => {
       setPreviewUrl("")
       setIsEdit(false)
       setCurrentId(null)
+      setType("")
     }
   }
 
@@ -137,6 +139,7 @@ const Services = () => {
     formData.append("price", price)
     formData.append("status", status)
     formData.append("duration", duration)
+    formData.append("type", type)
     if (imageFile) {
       formData.append("image", imageFile)
     }
@@ -178,9 +181,11 @@ const Services = () => {
         setCurrentId(data._id)
         setServiceName(data.serviceName)
         setCategoryId(data.categoryId)
+        setType(data.type)
         setPrice(data.price)
         setStatus(data.status || "active")
         setDuration(data.duration || "")
+        setType(data.type || "")
         setPreviewUrl(data.image ? URLS.ImageUrl + data.image : "")
         setModal(true)
       } else {
@@ -262,6 +267,7 @@ const Services = () => {
                 <Col xs={1}>Image</Col>
                 <Col>Service Name</Col>
                 <Col>Category</Col>
+                <Col>Type</Col>
                 <Col>Price</Col>
                 <Col>Status</Col>
                 <Col>Duration (Hours:Minutes)</Col>
@@ -295,6 +301,7 @@ const Services = () => {
                         </Col>
                         <Col className="fw-medium text-dark">{service.serviceName}</Col>
                         <Col className="text-muted small">{service.categoryName || 'N/A'}</Col>
+                        <Col className="fw-medium text-dark">{service.type}</Col>
                         <Col className="fw-bold text-primary">₹{service.price}</Col>
                         <Col>
                           <span className={`badge rounded-pill px-3 py-2 ${service.status === 'active' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}`}>
@@ -447,6 +454,29 @@ const Services = () => {
                       </Input>
                     </FormGroup>
                   </Col>
+
+                  <Col md={6}>
+                    <FormGroup className="mb-3">
+                      <Label className="fw-bold small mb-2">
+                        Type <span className="text-danger">*</span>
+                      </Label>
+                      <Input
+                        type="select"
+                        className="rounded-3 bg-light border-0 px-3 py-2"
+                        value={type}
+                        onChange={(e) => setType(e.target.value)}
+                        required
+                      >
+                        <option value="">Select Type</option>
+                        <option value="Men">Men</option>
+                        <option value="Women">Women</option>
+                      </Input>
+                    </FormGroup>
+                  </Col>
+
+                </Row>
+
+                <Row>
                   <Col md={6}>
                     <FormGroup className="mb-3">
                       <Label className="fw-bold small mb-2">
@@ -465,6 +495,20 @@ const Services = () => {
                       </div>
                     </FormGroup>
                   </Col>
+
+                  <Col md={6}>
+                    <FormGroup className="mb-3">
+                      <Label className="fw-bold small mb-2">Duration</Label>
+                      <Input
+                        type="text"
+                        placeholder="e.g., 30 minutes"
+                        className="rounded-3 bg-light border-0 px-3 py-2"
+                        value={duration}
+                        onChange={(e) => setDuration(e.target.value)}
+                      />
+                    </FormGroup>
+                  </Col>
+
                 </Row>
 
                 <Row className="g-3">
@@ -480,18 +524,6 @@ const Services = () => {
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                       </Input>
-                    </FormGroup>
-                  </Col>
-                  <Col md={6}>
-                    <FormGroup className="mb-3">
-                      <Label className="fw-bold small mb-2">Duration</Label>
-                      <Input
-                        type="text"
-                        placeholder="e.g., 30 minutes"
-                        className="rounded-3 bg-light border-0 px-3 py-2"
-                        value={duration}
-                        onChange={(e) => setDuration(e.target.value)}
-                      />
                     </FormGroup>
                   </Col>
                 </Row>
